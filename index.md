@@ -1,0 +1,156 @@
+# Panoptes
+
+> **Development status: Beta**
+>
+> Panoptes is under active development and should be considered beta
+> software. Its public API, configuration format, and bundled templates
+> may change, including through breaking changes, while the package is
+> being refined.
+
+# Introduction
+
+Panoptes is an R package that provides reusable infrastructure for
+testing package behavior across database platforms. It gives package
+maintainers a consistent way to declare supported database management
+systems, resolve test configuration, construct `DatabaseConnector` test
+contexts, and verify that a continuous-integration workflow matches the
+declared support matrix.
+
+Named after Argus Panoptes, the many-eyed guardian of Greek mythology,
+the package is designed to provide one view of compatibility across many
+database platforms.
+
+Panoptes does not provision database servers or OMOP CDMs, manage
+repository secrets, or define a consuming package’s behavior and
+assertions. Those remain the responsibility of the package and its test
+environment.
+
+# Features
+
+- Validate a package-owned YAML declaration of supported database
+  platforms.
+- Select one database platform per R process for focused live testing.
+- Resolve normalized environment variables without exposing credentials.
+- Construct a consistent, redacted `DatabaseConnector` test context.
+- Apply different failure policies to local, optional-CI, and
+  required-CI execution.
+- Scope temporary credentials and R options to the lifetime of a test
+  context.
+- Generate collision-resistant names for package-owned test objects.
+- Verify that a workflow includes every enabled external database with
+  the declared runner and GitHub environment.
+
+# Example
+
+Add Panoptes to the consuming package’s `Suggests`, then copy and
+customize the bundled database-platform declaration:
+
+``` r
+
+dir.create("inst/test-config", recursive = TRUE, showWarnings = FALSE)
+file.copy(
+  system.file(
+    "templates",
+    "hades-database-platforms.yml",
+    package = "Panoptes"
+  ),
+  "inst/test-config/hades-database-platforms.yml"
+)
+```
+
+A package-owned live behavior test can then use the selected database
+context:
+
+``` r
+
+testthat::test_that("package behavior works on the selected DBMS", {
+  config <- Panoptes::readDatabaseTestConfig(package = "MyPackage")
+  Panoptes::skipIfNoLiveDatabase(config)
+
+  Panoptes::withDatabaseTestContext(config, verify = TRUE, {
+    on.exit({
+      # Delete package-owned database objects here.
+    }, add = TRUE)
+
+    # Run package-specific behavior and assert its result here.
+    testthat::expect_true(nzchar(context$cdmDatabaseSchema))
+    Panoptes::requireDatabaseTestConnectionAttempted(context)
+  })
+})
+```
+
+Connection verification confirms that a connection was attempted; the
+package-specific assertions must still prove the behavior being tested.
+
+# Technology
+
+Panoptes is an R package. It uses `DatabaseConnector` to create database
+connection details and `testthat` to implement test-focused skip and
+failure behavior.
+
+# System requirements
+
+- R version 4.1.0 or higher.
+- Java and the appropriate JDBC drivers when testing a database that
+  requires them through `DatabaseConnector`.
+- Access to the database servers and OMOP CDMs used by live tests.
+
+Live database credentials are not required for ordinary package checks.
+
+# Getting Started
+
+1.  Install the current development version from GitHub:
+
+    ``` r
+
+    remotes::install_github("OHDSI/Panoptes")
+    ```
+
+2.  Add `Panoptes (>= 0.1.0)` to `Suggests` in the consuming package’s
+    `DESCRIPTION` file. Panoptes is intended to be a test-only
+    dependency.
+
+3.  Follow the usage vignette to declare database support, write a
+    package-owned behavior test, configure local credentials, and set up
+    live CI:
+
+    ``` r
+
+    vignette("using-panoptes", package = "Panoptes")
+    ```
+
+# User Documentation
+
+Documentation is available on the [Panoptes package
+website](https://ohdsi.github.io/Panoptes/).
+
+The primary guide is [Using Panoptes in a
+package](https://ohdsi.github.io/Panoptes/articles/using-panoptes.html).
+
+# Support
+
+Use the [GitHub issue tracker](https://github.com/OHDSI/Panoptes/issues)
+for bugs, enhancement requests, and other package feedback.
+
+# Contributing
+
+See [CONTRIBUTING.md](https://ohdsi.github.io/Panoptes/CONTRIBUTING.md)
+for development and contribution guidance.
+
+# License
+
+Panoptes is licensed under the Apache License 2.0. See
+[LICENSE.md](https://ohdsi.github.io/Panoptes/LICENSE.md) for details.
+
+# Development
+
+Panoptes is developed as an R package. Changes should include unit tests
+and keep the configuration validator, JSON Schema, configuration
+template, and workflow template aligned.
+
+### Development status
+
+Panoptes is under active development and is currently in beta. It has
+not yet reached a stable release contract, and maintainers should expect
+breaking changes as experience from additional consuming packages is
+incorporated.
