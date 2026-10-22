@@ -10,7 +10,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/OHDSI/Panoptes/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/OHDSI/Panoptes/blob/v0.2.0/DESCRIPTION)
 
 Sena A (2026). *Panoptes: Database Platform Compatibility for HADES*. R
 package version 0.2.0, <https://ohdsi.github.io/Panoptes/>.
