@@ -6,26 +6,40 @@
 </head>
 <body>
 <h1>Using Panoptes in a HADES package</h1>
-<p>Panoptes owns live-database test infrastructure. The consuming package owns
-its declaration, fixtures, behavior, assertions, and database-object cleanup.</p>
-<h2>Execution contract</h2>
+<p>This guide takes a HADES package from an ordinary test suite to one
+package-owned behavior test that runs against every declared live database.</p>
+<h2>Adoption steps</h2>
 <ol>
-  <li>Read and fully validate the package declaration.</li>
-  <li>Select one DBMS and enforce enabled, required, runner, and OS policy.</li>
-  <li>Resolve normalized environment variables and explicit legacy aliases.</li>
-  <li>Validate values before creating credentials or connection details.</li>
-  <li>Create a scoped context and run package-owned behavior.</li>
+  <li>Add <code>Panoptes (&gt;= 0.1.0)</code> to <code>Suggests</code>.</li>
+  <li>Copy and customize the database-platform declaration.</li>
+  <li>Add a consumer integration test for declaration discovery.</li>
+  <li>Write one database-neutral package behavior test.</li>
+  <li>Run a PostgreSQL-first test locally with normalized variables.</li>
+  <li>Provision one protected GitHub environment per external DBMS.</li>
+  <li>Copy and customize the pull-request/manual workflow.</li>
+  <li>Validate the workflow against the declaration.</li>
+  <li>Roll out the remaining supported platforms and maintain them together.</li>
 </ol>
-<h2>Basic test</h2>
+<h2>Core behavior-test shape</h2>
 <pre><code>config &lt;- Panoptes::readDatabaseTestConfig(package = "MyHadesPackage")
 Panoptes::skipIfNoLiveDatabase(config)
 Panoptes::withDatabaseTestContext(config, verify = TRUE, {
-  connection &lt;- DatabaseConnector::connect(context$connectionDetails)
-  on.exit(DatabaseConnector::disconnect(connection), add = TRUE)
-  # Run package behavior and assertions.
+  resultTable &lt;- context$objectPrefix
+  on.exit({
+    # Remove package-owned database objects.
+  }, add = TRUE)
+  # Run package behavior and assert its result.
   Panoptes::requireDatabaseTestConnectionAttempted(context)
 })</code></pre>
-<p>The complete guide, including configuration, local development, aliases,
-and CI setup, is in <code>vignettes/using-panoptes.Rmd</code>.</p>
+<p>Panoptes owns validation, environment resolution, connection contexts,
+temporary resources, compatibility checks, and workflow drift detection. The
+consumer owns database access, package behavior, assertions, fixtures, and
+cleanup.</p>
+<p>The full guide, including configuration fields, context fields, local driver
+setup, required secrets, fork safety, CI rollout, troubleshooting, and the
+maintenance checklist, is in
+<code>vignettes/using-panoptes.Rmd</code>.</p>
+<p>The walkthrough uses a PostgreSQL-first subset before expanding the
+declaration and workflow together.</p>
 </body>
 </html>

@@ -14,3 +14,6 @@
   is rejected as unknown.
 - Added package templates, JSON Schema, unit tests, vignettes, and migration
   documentation based on the CohortGenerator prototype.
+- Expanded the consumer vignette into an end-to-end maintainer guide covering
+  declaration, behavior tests, local execution, protected environments, CI,
+  rollout, and troubleshooting.

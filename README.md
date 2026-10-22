@@ -50,118 +50,47 @@ by tests.
 
 ## Quick start
 
-### 1. Declare supported platforms
-
-Copy the bundled template to the consuming package:
+Add `Panoptes (>= 0.1.0)` to the consuming package's `Suggests`, then copy and
+customize the declaration template:
 
 ```r
-template <- system.file(
-  "templates",
-  "hades-database-platforms.yml",
-  package = "Panoptes"
-)
 dir.create("inst/test-config", recursive = TRUE, showWarnings = FALSE)
 file.copy(
-  template,
+  system.file(
+    "templates",
+    "hades-database-platforms.yml",
+    package = "Panoptes"
+  ),
   "inst/test-config/hades-database-platforms.yml"
 )
 ```
 
-Change `package`, choose `databaseConnection: subset` if the package does not
-support every Panoptes adapter, and remove unwanted platform entries. Each field
-is validated; unknown fields fail rather than becoming ignored documentation.
-
-### 2. Write one package-owned behavior test
+Write one database-neutral behavior test. The consumer supplies the behavior,
+assertions, and cleanup; Panoptes supplies the selected context and verifies the
+connection:
 
 ```r
-testthat::test_that("cohort generation works on the selected DBMS", {
+testthat::test_that("package behavior works on the selected DBMS", {
   config <- Panoptes::readDatabaseTestConfig(package = "MyHadesPackage")
   Panoptes::skipIfNoLiveDatabase(config)
 
-  Panoptes::withDatabaseTestContext(
-    config,
-    verify = TRUE,
-    {
-      connection <- DatabaseConnector::connect(context$connectionDetails)
-      on.exit(DatabaseConnector::disconnect(connection), add = TRUE)
+  Panoptes::withDatabaseTestContext(config, verify = TRUE, {
+    on.exit({
+      # Delete package-owned test objects here.
+    }, add = TRUE)
 
-      tableName <- paste0(context$objectPrefix, "_cohort")
-      on.exit({
-        # Delete package-owned test objects here.
-      }, add = TRUE)
-
-      # Arrange package-specific fixtures, run package behavior, and assert.
-      testthat::expect_true(nzchar(context$cdmDatabaseSchema))
-      Panoptes::requireDatabaseTestConnectionAttempted(context)
-    }
-  )
+    # Run package-specific behavior using context and assert its result.
+    testthat::expect_true(nzchar(context$cdmDatabaseSchema))
+    Panoptes::requireDatabaseTestConnectionAttempted(context)
+  })
 })
 ```
 
-The expression passed to `withDatabaseTestContext()` can refer to `context`.
-Panoptes restores the `sqlRenderTempEmulationSchema` option and deletes any
-temporary key file on success or failure. It deliberately does not remove
-consumer-owned database objects.
-
-### 3. Provide normalized environment variables
-
-Panoptes uses this process-level contract:
-
-| Variable | Meaning |
-|---|---|
-| `HADES_TEST_DBMS` | One selected DBMS, such as `postgresql` |
-| `HADES_DATABASE_TEST` | Explicit live CI intent (`true` or `false`) |
-| `HADES_DB_USER` | Database user when password credentials are used |
-| `HADES_DB_PASSWORD` | Database password; URL-encoded values are decoded |
-| `HADES_DB_SERVER` | Server or SQLite database path |
-| `HADES_DB_CONNECTION_STRING` | JDBC connection string when declared |
-| `HADES_DB_KEY_FILE` | Existing key-file path or temporary key-file contents |
-| `HADES_CDM_SCHEMA` | OMOP CDM schema |
-| `HADES_VOCABULARY_SCHEMA` | Vocabulary schema; defaults to the CDM schema |
-| `HADES_WORK_SCHEMA` | Writable schema owned by the test environment |
-| `HADES_CDM_VERSION` | Optional override of the declared CDM version |
-
-Existing package-era variables can be used through an explicit alias map:
-
-```r
-legacyAliases <- c(
-  HADES_DB_USER = "CDM5_POSTGRESQL_USER",
-  HADES_DB_PASSWORD = "CDM5_POSTGRESQL_PASSWORD",
-  HADES_DB_SERVER = "CDM5_POSTGRESQL_SERVER",
-  HADES_CDM_SCHEMA = "CDM5_POSTGRESQL_CDM_SCHEMA",
-  HADES_WORK_SCHEMA = "CDM5_POSTGRESQL_OHDSI_SCHEMA"
-)
-
-Panoptes::withDatabaseTestContext(
-  config,
-  legacyAliases = legacyAliases,
-  { context$dbms }
-)
-```
-
-Normalized variables always take precedence. Error messages and print methods
-show names and set/unset state, never credential values or complete connection
-strings.
-
-### 4. Keep CI aligned with the declaration
-
-Use one live-database workflow containing every enabled external platform. For
-an auditable static caller matrix, add a unit test:
-
-```r
-testthat::expect_true(
-  Panoptes::validateDatabaseTestWorkflow(
-    config,
-    ".github/workflows/database-platform-tests.yml"
-  )
-)
-```
-
-The bundled `inst/templates/database-platform-tests.yml` shows the boundary:
-the caller chooses triggers and maps GitHub secrets to normalized variables;
-Panoptes validates DBMS, runner, and GitHub environment rows. The bundled
-workflow uses pull-request and manual triggers; Panoptes does not define or
-require scheduled database tests.
+Copy the bundled workflow, configure one protected GitHub environment per
+external DBMS, and keep its static matrix aligned with the declaration. The
+complete dependency, configuration, local-development, secrets, CI, rollout,
+and troubleshooting procedure is in
+`vignette("using-panoptes", package = "Panoptes")`.
 
 ## Missing environment policy
 
@@ -178,7 +107,8 @@ test.
 
 ## More documentation
 
-- `vignette("using-panoptes", package = "Panoptes")` gives a full consumer workflow.
+- `vignette("using-panoptes", package = "Panoptes")` gives the complete
+  step-by-step maintainer adoption guide.
 - `vignette("migrating-to-panoptes", package = "Panoptes")` maps the CohortGenerator
   prototype helpers to Panoptes.
 - `extras/implementation-notes.md` records implementation decisions, known
