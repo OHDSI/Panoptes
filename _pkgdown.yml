@@ -3,7 +3,7 @@ template:
   bootstrap: 5
 home:
   title: Panoptes
-  description: Database testing infrastructure for HADES packages
+  description: Database compatibility testing infrastructure for R packages
 reference:
   - title: Configuration and selection
     contents:

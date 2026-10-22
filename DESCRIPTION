@@ -15,7 +15,8 @@ Description: Helps Health Analytics Data-to-Evidence Suite ('HADES') package
     contexts, scopes test resources, and detects drift between declarations
     and continuous-integration matrices.
 License: Apache License (>= 2)
-URL: https://github.com/OHDSI/Panoptes
+URL: https://ohdsi.github.io/Panoptes/,
+    https://github.com/OHDSI/Panoptes
 BugReports: https://github.com/OHDSI/Panoptes/issues
 Depends:
     R (>= 4.1.0)
