@@ -32,6 +32,28 @@ test_that("passwords are URL decoded for DatabaseConnector", {
   })
 })
 
+test_that("DuckDB uses the local file adapter without credentials", {
+  platform <- makeTestPlatform(
+    dbms = "duckdb",
+    connectionMode = "local",
+    credentialMode = "none"
+  )
+  values <- databaseEnvironment
+  values[["HADES_TEST_DBMS"]] <- "duckdb"
+  values[["HADES_DB_SERVER"]] <- "test.duckdb"
+
+  withr::with_options(list(Panoptes.connectionDetailsFactory = mockConnectionDetails), {
+    withr::with_envvar(values, {
+      context <- createDatabaseTestContext(makeTestConfig(list(platform)))
+      expect_equal(context$dbms, "duckdb")
+      expect_equal(context$connectionDetails$dbms, "duckdb")
+      expect_equal(context$connectionDetails$server, "test.duckdb")
+      expect_false("user" %in% names(context$connectionDetails))
+      expect_false("password" %in% names(context$connectionDetails))
+    })
+  })
+})
+
 test_that("Spark and Snowflake workarounds are isolated in adapters", {
   spark <- makeTestPlatform(dbms = "spark", connectionMode = "connectionString")
   snowflake <- makeTestPlatform(dbms = "snowflake", connectionMode = "connectionString")

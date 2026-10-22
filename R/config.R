@@ -213,11 +213,12 @@ validatePlatformConfig <- function(platform, index) {
   if (platform$required && !platform$enabled) {
     stop(sprintf("Required platform '%s' must be enabled.", platform$dbms), call. = FALSE)
   }
-  if (platform$connectionMode == "local" && platform$dbms != "sqlite") {
-    stop("Only SQLite can use `connectionMode: local` in Panoptes 0.1.0.", call. = FALSE)
+  localDbms <- c("sqlite", "duckdb")
+  if (platform$connectionMode == "local" && !platform$dbms %in% localDbms) {
+    stop("Only SQLite and DuckDB can use `connectionMode: local`.", call. = FALSE)
   }
-  if (platform$dbms == "sqlite" && platform$connectionMode != "local") {
-    stop("SQLite must use `connectionMode: local`.", call. = FALSE)
+  if (platform$dbms %in% localDbms && platform$connectionMode != "local") {
+    stop(sprintf("%s must use `connectionMode: local`.", platform$dbms), call. = FALSE)
   }
   if (is.null(platform$githubEnvironment)) {
     platform$githubEnvironment <- paste0("test-", gsub(" ", "-", platform$dbms, fixed = TRUE))

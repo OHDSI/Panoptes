@@ -1,3 +1,9 @@
+# Panoptes 0.2.0
+
+- Added DuckDB as a supported local, credential-free database platform. DuckDB
+  declarations use a database file path and do not require JDBC provisioning or
+  an external-database workflow row.
+
 # Panoptes 0.1.0
 
 - Added a validated, authoritative database-platform declaration.

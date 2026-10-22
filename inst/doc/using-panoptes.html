@@ -11,7 +11,7 @@ package-owned behavior test that runs against every declared live database.</p>
 <p>It is the canonical adoption guide for package maintainers.</p>
 <h2>Adoption steps</h2>
 <ol>
-  <li>Add <code>Panoptes (&gt;= 0.1.0)</code> to <code>Suggests</code>.</li>
+  <li>Add <code>Panoptes (&gt;= 0.2.0)</code> to <code>Suggests</code>.</li>
   <li>Copy and customize the database-platform declaration.</li>
   <li>Add a consumer integration test for declaration discovery.</li>
   <li>Write one database-neutral package behavior test.</li>
@@ -42,5 +42,7 @@ maintenance checklist, is in
 <code>vignettes/using-panoptes.Rmd</code>.</p>
 <p>The walkthrough uses a PostgreSQL-first subset before expanding the
 declaration and workflow together.</p>
+<p>DuckDB and SQLite are supported as local file-based platforms and do not
+require JDBC drivers or external-database matrix rows.</p>
 </body>
 </html>

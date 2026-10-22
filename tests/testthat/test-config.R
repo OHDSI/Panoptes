@@ -97,6 +97,22 @@ test_that("platform fields and cross-field rules are enforced", {
   expect_error(validateDatabaseTestConfig(bad), "requires `connectionMode")
 })
 
+test_that("SQLite and DuckDB are the supported local platforms", {
+  duckdb <- makeTestPlatform(
+    dbms = "duckdb",
+    connectionMode = "local",
+    credentialMode = "none"
+  )
+  expect_s3_class(makeTestConfig(list(duckdb)), "panoptes_database_test_config")
+
+  bad <- duckdb
+  bad$connectionMode <- "server"
+  expect_error(makeTestConfig(list(bad)), "duckdb must use `connectionMode: local`")
+
+  bad <- makeTestPlatform(connectionMode = "local", credentialMode = "none")
+  expect_error(makeTestConfig(list(bad)), "Only SQLite and DuckDB")
+})
+
 test_that("databaseConnection all requires all supported adapters", {
   config <- unclass(makeTestConfig())
   config$databaseConnection <- "all"
@@ -112,7 +128,11 @@ test_that("the bundled consumer template remains valid", {
   config <- readDatabaseTestConfig(path = template)
 
   expect_equal(config$databaseConnection, "all")
-  expect_length(config$platforms, 9)
+  expect_length(config$platforms, 10)
+  expect_contains(
+    vapply(config$platforms, `[[`, character(1), "dbms"),
+    "duckdb"
+  )
 })
 
 test_that("configured platforms filter on enabled state", {

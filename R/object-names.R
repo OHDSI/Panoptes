@@ -7,7 +7,8 @@
   "bigquery" = 300L,
   "snowflake" = 255L,
   "iris" = 200L,
-  "sqlite" = 255L
+  "sqlite" = 255L,
+  "duckdb" = 255L
 )
 
 #' Create a collision-resistant database object name

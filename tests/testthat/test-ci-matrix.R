@@ -37,8 +37,16 @@ test_that("bundled configuration and workflow templates stay aligned", {
     config$platforms
   )
   expectedDbms <- vapply(externalPlatforms, `[[`, character(1), "dbms")
+  localDbms <- vapply(
+    Filter(function(platform) platform$connectionMode == "local", config$platforms),
+    `[[`,
+    character(1),
+    "dbms"
+  )
 
   expect_setequal(observedDbms, expectedDbms)
+  expect_setequal(localDbms, c("sqlite", "duckdb"))
+  expect_false(any(localDbms %in% observedDbms))
   expect_match(job[["if"]], "github.repository", fixed = TRUE)
   expect_identical(
     job$env$DATABASECONNECTOR_JAR_FOLDER,

@@ -24,7 +24,7 @@
       ],
       "properties": {
         "dbms": {
-          "enum": ["sqlite", "postgresql", "sql server", "oracle", "redshift", "spark", "bigquery", "snowflake", "iris"]
+          "enum": ["sqlite", "duckdb", "postgresql", "sql server", "oracle", "redshift", "spark", "bigquery", "snowflake", "iris"]
         },
         "enabled": {"type": "boolean"},
         "required": {"type": "boolean"},

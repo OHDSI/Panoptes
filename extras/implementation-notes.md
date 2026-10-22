@@ -30,7 +30,7 @@ identifies the mythological namesake.
 Panoptes provides:
 
 - authoritative YAML configuration validation with unknown-field rejection;
-- canonical names and input aliases for all nine supported DBMS platforms;
+- canonical names and input aliases for all ten supported DBMS platforms;
 - one-DBMS-per-process selection through `HADES_TEST_DBMS`;
 - enabled, required, runner, and operating-system policy;
 - normalized `HADES_*` environment resolution with consumer-supplied aliases;
@@ -91,7 +91,7 @@ locally or for an optional platform.
   attempts, unique names, and workflow drift.
 - Package documentation is generated with roxygen2.
 - `lintr::lint_package()` completed with no lints.
-- The bundled JSON Schema parsed successfully and the full nine-platform
+- The bundled JSON Schema parsed successfully and the full ten-platform
   consumer template passed the normative R validator.
 - `R CMD build --no-manual --no-build-vignettes` and the corresponding
   `R CMD check` completed successfully. Prebuilt vignette output is included
@@ -114,10 +114,10 @@ documented defaults, but they should be reviewed before a public 0.1.0 tag.
 5. **BigQuery compatibility:** the template currently restricts BigQuery to a
    Windows runner. Confirm whether current DatabaseConnector and driver
    versions support other runners before retaining this restriction long-term.
-6. **SQLite context:** Panoptes treats SQLite as a declared local platform and
-   expects `HADES_DB_SERVER`, CDM schema, and work schema if explicitly
-   selected. Normal package tests may continue to construct their own local
-   fixture without Panoptes.
+6. **Local contexts:** Panoptes treats SQLite and DuckDB as declared local
+   platforms and expects `HADES_DB_SERVER`, CDM schema, and work schema if one
+   is explicitly selected. Normal package tests may continue to construct
+   their own local fixture without Panoptes.
 7. **Reusable workflow publication:** the package includes an auditable caller
    workflow template and drift validator. Decide whether OHDSI also wants a
    centrally versioned reusable workflow after repository hosting is available.
