@@ -10,7 +10,7 @@ test_that("undeclared and disabled platforms fail clearly", {
   config <- makeTestConfig()
   expect_error(getSelectedTestDbms(config, "oracle"), class = "panoptes_platform_not_declared")
 
-  disabled <- makeTestPlatform(enabled = FALSE, required = FALSE, ci = "none")
+  disabled <- makeTestPlatform(enabled = FALSE, required = FALSE)
   disabled$reason <- "Deliberately disabled"
   config <- makeTestConfig(list(disabled))
   expect_error(getSelectedTestDbms(config, "postgresql"), class = "panoptes_platform_disabled")

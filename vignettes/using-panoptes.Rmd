@@ -22,7 +22,7 @@ The execution order is intentional:
 
 1. locate, read, and fully validate the declaration;
 2. normalize and validate the selected DBMS;
-3. enforce enabled, required, CI-tier, and operating-system policy;
+3. enforce enabled, required, and operating-system policy;
 4. resolve normalized variables and explicit legacy aliases;
 5. validate required values;
 6. create temporary credentials and connection details;
@@ -49,8 +49,8 @@ file.copy(
 
 Use `databaseConnection: subset` and retain only supported platforms when the
 package does not support all nine adapters. Disabled entries must contain a
-reason. Required entries must be enabled and assigned a CI tier. The `runner`
-and `os` fields make compatibility executable; the bundled template assigns
+reason. Required entries must be enabled. The `runner` and `os` fields make
+compatibility executable; the bundled template assigns
 BigQuery to Windows based on the CohortGenerator prototype.
 
 Read the declaration from an installed consumer package:
@@ -162,23 +162,17 @@ Keep normal `R CMD check` free of live credentials. Use a separate workflow
 whose matrix has one isolated job per DBMS and map environment secrets to the
 normalized interface at the job boundary.
 
-The expected matrix is declaration-driven:
-
-```{r matrix, eval=FALSE}
-Panoptes::getDatabaseTestMatrix(config, "pull-request")
-Panoptes::getDatabaseTestMatrix(config, "scheduled")
-```
-
-For a static, reviewable YAML matrix, prevent drift with a package unit test:
+Use one matrix containing every enabled external platform. For a static,
+reviewable YAML matrix, prevent drift with a package unit test:
 
 ```{r workflow-validation, eval=FALSE}
 Panoptes::validateDatabaseTestWorkflow(
   config,
-  ".github/workflows/database-platform-tests.yml",
-  ci = "pull-request"
+  ".github/workflows/database-platform-tests.yml"
 )
 ```
 
-Use a separate scheduled workflow or matrix for `scheduled` platforms. Forked
-pull requests do not receive protected secrets; choose a trusted maintainer
-workflow or manual-dispatch policy rather than weakening secret protection.
+Panoptes does not define a scheduled tier or require cron-driven database tests.
+Forked pull requests do not receive protected secrets; use the workflow's
+manual trigger or another trusted-maintainer policy rather than weakening
+secret protection.

@@ -1,20 +1,14 @@
-#' Derive a CI matrix from a database test declaration
-#'
-#' @param config A database test configuration.
-#' @param ci One CI tier: `pull-request`, `push`, `scheduled`, `manual`, or
-#'   `none`.
-#'
-#' @return A data frame suitable for serializing as a GitHub Actions matrix.
-#' @export
-getDatabaseTestMatrix <- function(config, ci) {
-  platforms <- getConfiguredDatabasePlatforms(config, ci = ci, enabled = TRUE)
+getDatabaseWorkflowMatrix <- function(config) {
+  platforms <- getConfiguredDatabasePlatforms(config, enabled = TRUE)
+  platforms <- Filter(
+    function(x) !identical(x$connectionMode, "local"),
+    platforms
+  )
   if (!length(platforms)) {
     return(data.frame(
       dbms = character(),
       runner = character(),
       environment = character(),
-      required = logical(),
-      ci = character(),
       stringsAsFactors = FALSE
     ))
   }
@@ -22,8 +16,6 @@ getDatabaseTestMatrix <- function(config, ci) {
     dbms = vapply(platforms, `[[`, character(1), "dbms"),
     runner = vapply(platforms, `[[`, character(1), "runner"),
     environment = vapply(platforms, `[[`, character(1), "githubEnvironment"),
-    required = vapply(platforms, `[[`, logical(1), "required"),
-    ci = vapply(platforms, `[[`, character(1), "ci"),
     stringsAsFactors = FALSE,
     check.names = FALSE
   )
@@ -48,11 +40,10 @@ extractWorkflowMatrix <- function(workflow) {
 #' @param config A database test configuration.
 #' @param workflow Path to a GitHub Actions YAML workflow or an already parsed
 #'   workflow mapping.
-#' @param ci CI tier represented by the static matrix.
 #'
 #' @return `TRUE`, invisibly, or a `panoptes_workflow_drift` error.
 #' @export
-validateDatabaseTestWorkflow <- function(config, workflow, ci) {
+validateDatabaseTestWorkflow <- function(config, workflow) {
   config <- asDatabaseTestConfig(config)
   if (is.character(workflow) && length(workflow) == 1L) {
     if (!file.exists(workflow)) {
@@ -63,7 +54,7 @@ validateDatabaseTestWorkflow <- function(config, workflow, ci) {
   if (!is.list(workflow)) {
     stop("`workflow` must be a path or parsed YAML mapping.", call. = FALSE)
   }
-  expected <- getDatabaseTestMatrix(config, ci)
+  expected <- getDatabaseWorkflowMatrix(config)
   include <- extractWorkflowMatrix(workflow)
   observed <- if (length(include)) {
     data.frame(

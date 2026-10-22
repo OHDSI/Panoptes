@@ -64,7 +64,7 @@ The shared package should own:
 - locating, reading, and fully validating the package declaration;
 - canonical DBMS names and aliases;
 - selected-platform resolution;
-- enabled, required, and CI-tier semantics;
+- enabled and required semantics;
 - normalized environment-variable resolution;
 - optional legacy environment-variable aliases;
 - local-skip versus required-CI-failure policy;
@@ -76,7 +76,7 @@ The shared package should own:
 - unique database object-name generation;
 - a stable database test context contract;
 - testthat-facing skip helpers;
-- CI matrix derivation and declaration/workflow drift validation; and
+- declaration/workflow drift validation; and
 - reusable workflow templates or a reusable GitHub workflow.
 
 ### Keep in each consuming package
@@ -139,9 +139,13 @@ read config -> select platform -> validate platform -> resolve environment
 
 In the prototype, any missing environment variable fails when `HADES_DATABASE_TEST=true`, regardless of the platform's `required` value. Strictness must combine explicit CI intent with the selected platform's policy.
 
-### 4. CI tiers and triggers disagree
+### 4. CI tier metadata is unnecessary
 
-The YAML assigns `pull-request` to some platforms and `scheduled` to others, but the workflow runs all eight external platforms on matching pushes and pull requests and has no scheduled trigger. CI jobs must be derived from, or checked against, the declared tier.
+The prototype assigns trigger tiers in package configuration even though its
+workflow runs one complete external-platform matrix. The shared package should
+not model trigger policy. It should validate one workflow containing every
+enabled external platform, while the consumer owns pull-request and manual
+triggers.
 
 ### 5. BigQuery cannot run in the current job shape
 
@@ -149,7 +153,7 @@ The helper marks BigQuery as Windows-only, while every live matrix job uses Ubun
 
 ### 6. Configuration validation is shallow
 
-The current loader checks only schema version, package name, and the top-level database relationship. It does not fully validate required fields, unique DBMS entries, field types, allowed CI tiers, disabled reasons, or relationships between fields.
+The current loader checks only schema version, package name, and the top-level database relationship. It does not fully validate required fields, unique DBMS entries, field types, disabled reasons, or relationships between fields.
 
 ### 7. Source-tree discovery depends on the working directory
 
@@ -216,7 +220,7 @@ JSON Schema is useful for editor and non-R validation, but R validation must rem
 ```r
 readDatabaseTestConfig(package = NULL, path = NULL)
 validateDatabaseTestConfig(config, package = NULL)
-getConfiguredDatabasePlatforms(config, ci = NULL, enabled = TRUE)
+getConfiguredDatabasePlatforms(config, enabled = TRUE)
 getSelectedTestDbms(config, value = Sys.getenv("HADES_TEST_DBMS"))
 getDatabasePlatformConfig(config, dbms = getSelectedTestDbms(config))
 isLiveDatabaseTest()
@@ -227,7 +231,6 @@ validateDatabaseTestEnvironment(platform, environment, strict = NULL)
 createDatabaseTestContext(config, dbms = NULL, legacyAliases = NULL)
 withDatabaseTestContext(config, code, dbms = NULL, legacyAliases = NULL)
 createUniqueDatabaseObjectName(prefix, maxLength = NULL)
-getDatabaseTestMatrix(config, ci)
 validateDatabaseTestWorkflow(config, workflow)
 ```
 
@@ -287,8 +290,9 @@ Deliverable: a short accepted design note or issue.
 - Confirm that the package targets live DBMS test infrastructure only.
 - Decide whether `testthat` is an import or an optional adapter.
 - Confirm normalized `HADES_*` environment names.
-- Define the supported CI tiers: `pull-request`, `push`, `scheduled`, `manual`, and `none`.
-- Decide whether `required` applies per selected CI tier or globally.
+- Keep trigger policy out of the declaration and validate one complete live
+  matrix.
+- Treat `required` as global whenever explicit live CI is active.
 - Confirm BigQuery runner support.
 - Select one second HADES package for the pilot migration.
 
@@ -315,7 +319,7 @@ Deliverable: configuration can be located, parsed, normalized, and rejected with
 - Reject duplicate canonical DBMS names.
 - Require a reason for disabled platforms.
 - Normalize aliases such as `sqlserver` to `sql server` only at input boundaries.
-- Implement CI-tier filtering.
+- Reject the prototype's obsolete `ci` field.
 - Add a JSON Schema that matches the R validator.
 - Test source-tree and installed-package discovery.
 
@@ -367,15 +371,14 @@ Exit criterion: an example package test uses no platform-specific branch in its 
 
 Deliverable: consumer CI and its declaration cannot silently drift.
 
-- Implement `getDatabaseTestMatrix()`.
-- Add a command or test helper that compares the static caller matrix with configuration.
+- Add a test helper that compares the complete static caller matrix with configuration.
 - Add a reusable workflow that accepts DBMS, runner, GitHub environment, package path, and R version.
 - Keep secret-to-normalized-variable mapping at the caller boundary.
 - Make required jobs fail if no live connection was attempted.
-- Add a scheduled trigger example and fork-PR guidance.
+- Add pull-request/manual trigger and fork-PR guidance.
 - Pin the reusable workflow by released tag in consumers.
 
-Exit criterion: fixture workflows prove tier filtering, runner selection, missing-secret failure, and matrix/config agreement.
+Exit criterion: fixture workflows prove runner selection, missing-secret failure, and complete matrix/config agreement.
 
 ### Phase 7: Migrate CohortGenerator
 
@@ -386,7 +389,7 @@ Deliverable: CohortGenerator consumes a released or pinned development version o
 - Retain only CohortGenerator's behavioral test and cleanup.
 - Map current secrets to normalized environment variables in the workflow.
 - Correct the BigQuery runner.
-- Align workflow triggers with declared CI tiers.
+- Consolidate database testing in one pull-request/manual workflow.
 - Remove obsolete helper tests after equivalent shared-package tests exist.
 - Keep a small integration test proving the installed declaration is found.
 
@@ -399,7 +402,7 @@ Deliverable: version 0.1.0 validated by at least two materially different HADES 
 - Migrate the selected second package.
 - Record extension points discovered by the second migration.
 - Avoid expanding the public API unless both consumers need it.
-- Run required platforms and at least one scheduled platform in both packages.
+- Run every required external platform in both packages.
 - Publish a compatibility and migration table.
 - Tag `0.1.0`, then update consumers to the tag.
 
@@ -447,7 +450,7 @@ This first PR is intentionally credential-free and can be reviewed on API and sc
 - No error, print method, or log exposes secrets or full connection strings.
 - Temporary credential files and global options are restored on success and failure.
 - Platform adapters share one context contract.
-- CI tier and runner choice are validated against the declaration.
+- Runner choice is validated against the declaration.
 - Matrix/declaration drift is detected automatically.
 - Ordinary package checks receive no live database credentials.
 - CohortGenerator contains no copied generic adapter implementation.

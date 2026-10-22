@@ -159,7 +159,7 @@ validatePlatformConfig <- function(platform, index) {
     stop(sprintf("Platform %d must be a named mapping.", index), call. = FALSE)
   }
   required <- c(
-    "dbms", "enabled", "required", "ci", "cdmVersion",
+    "dbms", "enabled", "required", "cdmVersion",
     "connectionMode", "tempEmulationSchema", "runner", "os"
   )
   allowed <- c(required, "credentialMode", "reason", "githubEnvironment")
@@ -184,10 +184,6 @@ validatePlatformConfig <- function(platform, index) {
       sprintf("Platform '%s' enabled, required, and tempEmulationSchema must be logical.", platform$dbms),
       call. = FALSE
     )
-  }
-  if (!isScalarCharacter(platform$ci) ||
-      !platform$ci %in% c("pull-request", "push", "scheduled", "manual", "none")) {
-    stop(sprintf("Platform '%s' has an invalid `ci` tier.", platform$dbms), call. = FALSE)
   }
   if (!isScalarCharacter(platform$cdmVersion) ||
       !grepl("^[0-9]+([.][0-9]+){1,2}$", platform$cdmVersion)) {
@@ -214,8 +210,8 @@ validatePlatformConfig <- function(platform, index) {
   if (!platform$enabled && !isScalarCharacter(platform$reason)) {
     stop(sprintf("Disabled platform '%s' must provide `reason`.", platform$dbms), call. = FALSE)
   }
-  if (platform$required && (!platform$enabled || platform$ci == "none")) {
-    stop(sprintf("Required platform '%s' must be enabled and have a CI tier.", platform$dbms), call. = FALSE)
+  if (platform$required && !platform$enabled) {
+    stop(sprintf("Required platform '%s' must be enabled.", platform$dbms), call. = FALSE)
   }
   if (platform$connectionMode == "local" && platform$dbms != "sqlite") {
     stop("Only SQLite can use `connectionMode: local` in Panoptes 0.1.0.", call. = FALSE)
@@ -236,22 +232,14 @@ validatePlatformConfig <- function(platform, index) {
 #'
 #' @param config A validated configuration or path/package input accepted by
 #'   [readDatabaseTestConfig()].
-#' @param ci Optional CI tier to filter.
 #' @param enabled Whether to return enabled (`TRUE`), disabled (`FALSE`), or all
 #'   (`NULL`) platforms.
 #'
 #' @return A list of platform mappings.
 #' @export
-getConfiguredDatabasePlatforms <- function(config, ci = NULL, enabled = TRUE) {
+getConfiguredDatabasePlatforms <- function(config, enabled = TRUE) {
   config <- asDatabaseTestConfig(config)
   platforms <- config$platforms
-  if (!is.null(ci)) {
-    if (!isScalarCharacter(ci) ||
-        !ci %in% c("pull-request", "push", "scheduled", "manual", "none")) {
-      stop("`ci` is not a supported CI tier.", call. = FALSE)
-    }
-    platforms <- Filter(function(x) identical(x$ci, ci), platforms)
-  }
   if (!is.null(enabled)) {
     if (!isScalarLogical(enabled)) {
       stop("`enabled` must be TRUE, FALSE, or NULL.", call. = FALSE)

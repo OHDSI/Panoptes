@@ -29,7 +29,6 @@ reference:
       - skipIfLiveDatabaseTest
   - title: Continuous integration
     contents:
-      - getDatabaseTestMatrix
       - validateDatabaseTestWorkflow
 articles:
   - title: Guides

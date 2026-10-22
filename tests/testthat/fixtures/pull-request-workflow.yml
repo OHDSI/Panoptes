@@ -7,3 +7,6 @@ jobs:
           - dbms: postgresql
             runner: ubuntu-latest
             environment: test-postgresql
+          - dbms: bigquery
+            runner: windows-latest
+            environment: test-bigquery

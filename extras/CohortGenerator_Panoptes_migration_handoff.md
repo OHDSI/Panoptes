@@ -84,7 +84,7 @@ The Panoptes path should execute in this order:
 ```text
 read and fully validate declaration
   -> select and validate one DBMS
-  -> enforce enabled, required, tier, runner, and OS policy
+  -> enforce enabled, required, runner, and OS policy
   -> resolve normalized environment and optional legacy aliases
   -> validate required values
   -> create temporary credentials and connection details
@@ -110,9 +110,7 @@ Resolve these items in the migration pull request description:
 3. **BigQuery runner.** This handoff preserves the Panoptes 0.1.0 declaration
    of `windows-latest` and `os: windows`. Change it only after the current
    DatabaseConnector and BigQuery driver path is verified elsewhere.
-4. **Scheduled cadence.** Choose the organization-approved cron expression for
-   Redshift, Spark, BigQuery, Snowflake, and IRIS.
-5. **Fork pull requests.** Protected credentials are unavailable to untrusted
+4. **Fork pull requests.** Protected credentials are unavailable to untrusted
    forks. Keep live jobs disabled for fork code unless a maintainer initiates a
    trusted run.
 
@@ -128,8 +126,8 @@ Resolve these items in the migration pull request description:
 | `tests/testthat/test-dbms-platforms.R` | Change `testPlatform()` to accept a Panoptes context and wrap the test in `withDatabaseTestContext()` |
 | `tests/testthat/setup.R` | Keep the selected-DBMS guard that avoids unnecessary Eunomia setup; do not use `isLiveDatabaseTest()` as a replacement because local selected-DBMS runs may set `HADES_DATABASE_TEST=false` |
 | Ordinary `tests/testthat/test-*.R` files | Replace unqualified `skipIfLiveDatabaseTest()` calls with `Panoptes::skipIfLiveDatabaseTest()` |
-| `.github/workflows/database-platform-tests.yml` | Restrict to pull-request-tier platforms and normalized variables; use each row's declared runner |
-| `.github/workflows/database-platform-tests-scheduled.yml` | Add a scheduled/manual workflow for scheduled-tier platforms |
+| `.github/workflows/database-platform-tests.yml` | Include every enabled external platform with normalized variables; use each row's declared runner; retain pull-request/manual triggers |
+| `.github/workflows/database-platform-tests-scheduled.yml` | Delete if it exists; Panoptes does not define scheduled database testing |
 | `.github/workflows/R_CMD_check_Hades.yaml` | Keep secret-free; no live database variables should be added back |
 | `NEWS.md` | Record adoption of Panoptes and removal of copied adapters |
 
@@ -163,7 +161,8 @@ it. Keep `withr`, which is used by several remaining tests.
 Replace `inst/test-config/hades-database-platforms.yml` with the declaration
 below. Panoptes rejects `environmentPrefix` because it cannot model the legacy
 naming exceptions. The executable `runner`, `os`, and `githubEnvironment`
-fields replace hard-coded workflow policy.
+fields replace hard-coded workflow policy. Remove the prototype's `ci` field;
+Panoptes validates one complete live matrix instead of modeling trigger tiers.
 
 ```yaml
 schemaVersion: 1
@@ -173,7 +172,6 @@ platforms:
   - dbms: sqlite
     enabled: true
     required: false
-    ci: none
     cdmVersion: "5.4"
     connectionMode: local
     credentialMode: none
@@ -185,7 +183,6 @@ platforms:
   - dbms: postgresql
     enabled: true
     required: true
-    ci: pull-request
     cdmVersion: "5.4"
     connectionMode: server
     credentialMode: password
@@ -197,7 +194,6 @@ platforms:
   - dbms: sql server
     enabled: true
     required: true
-    ci: pull-request
     cdmVersion: "5.4"
     connectionMode: server
     credentialMode: password
@@ -209,7 +205,6 @@ platforms:
   - dbms: oracle
     enabled: true
     required: true
-    ci: pull-request
     cdmVersion: "5.4"
     connectionMode: server
     credentialMode: password
@@ -221,7 +216,6 @@ platforms:
   - dbms: redshift
     enabled: true
     required: true
-    ci: scheduled
     cdmVersion: "5.4"
     connectionMode: server
     credentialMode: password
@@ -233,7 +227,6 @@ platforms:
   - dbms: spark
     enabled: true
     required: true
-    ci: scheduled
     cdmVersion: "5.4"
     connectionMode: connectionString
     credentialMode: password
@@ -245,7 +238,6 @@ platforms:
   - dbms: bigquery
     enabled: true
     required: true
-    ci: scheduled
     cdmVersion: "5.4"
     connectionMode: connectionString
     credentialMode: keyFile
@@ -257,7 +249,6 @@ platforms:
   - dbms: snowflake
     enabled: true
     required: true
-    ci: scheduled
     cdmVersion: "5.4"
     connectionMode: connectionString
     credentialMode: password
@@ -269,7 +260,6 @@ platforms:
   - dbms: iris
     enabled: true
     required: true
-    ci: scheduled
     cdmVersion: "5.4"
     connectionMode: connectionString
     credentialMode: password
@@ -569,16 +559,20 @@ test_that("Panoptes finds the installed CohortGenerator declaration", {
   )
 })
 
-test_that("CohortGenerator declares the intended CI tiers", {
+test_that("CohortGenerator declares all supported platforms", {
   config <- Panoptes::readDatabaseTestConfig(package = "CohortGenerator")
 
   expect_equal(
-    Panoptes::getDatabaseTestMatrix(config, "pull-request")$dbms,
-    c("postgresql", "sql server", "oracle")
-  )
-  expect_equal(
-    Panoptes::getDatabaseTestMatrix(config, "scheduled")$dbms,
-    c("redshift", "spark", "bigquery", "snowflake", "iris")
+    vapply(
+      Panoptes::getConfiguredDatabasePlatforms(config),
+      `[[`,
+      character(1),
+      "dbms"
+    ),
+    c(
+      "sqlite", "postgresql", "sql server", "oracle", "redshift",
+      "spark", "bigquery", "snowflake", "iris"
+    )
   )
 })
 ```
@@ -587,14 +581,11 @@ Workflow-file drift should be checked in the workflow itself because
 `.github` is excluded by CohortGenerator's `.Rbuildignore` and is unavailable
 during built-package tests.
 
-## Split and normalize live database workflows
+## Normalize the live database workflow
 
-Panoptes 0.1.0 validates every matrix row found in a workflow against one CI
-tier. Keep pull-request and scheduled platform matrices in separate files.
-
-### Pull-request workflow
-
-Keep `.github/workflows/database-platform-tests.yml` for:
+Panoptes 0.1.0 validates one complete live matrix against every enabled
+external platform in the declaration. Keep a single
+`.github/workflows/database-platform-tests.yml` workflow containing:
 
 ```yaml
 strategy:
@@ -610,28 +601,6 @@ strategy:
       - dbms: oracle
         runner: ubuntu-latest
         environment: test-oracle
-
-runs-on: ${{ matrix.runner }}
-environment: ${{ matrix.environment }}
-```
-
-Trigger it on `pull_request` and optionally `workflow_dispatch`. Avoid treating
-an untrusted fork pull request as authorized to receive protected secrets.
-
-### Scheduled workflow
-
-Add `.github/workflows/database-platform-tests-scheduled.yml` with:
-
-```yaml
-on:
-  schedule:
-    - cron: "<approved UTC schedule>"
-  workflow_dispatch:
-
-strategy:
-  fail-fast: false
-  matrix:
-    include:
       - dbms: redshift
         runner: ubuntu-latest
         environment: test-redshift
@@ -647,11 +616,18 @@ strategy:
       - dbms: iris
         runner: ubuntu-latest
         environment: test-iris
+
+runs-on: ${{ matrix.runner }}
+environment: ${{ matrix.environment }}
 ```
 
-### Common normalized environment
+Trigger it on `pull_request` and `workflow_dispatch`. Do not add a `schedule`
+trigger. Avoid treating an untrusted fork pull request as authorized to receive
+protected secrets.
 
-Both workflows should use:
+### Normalized environment
+
+The workflow should use:
 
 ```yaml
 env:
@@ -692,12 +668,12 @@ Install a compatible JDK on every selected runner. The current Linux-only
 `apt-get default-jdk` step is not sufficient for the Windows BigQuery row; use
 a cross-platform Java setup action or a runner image with the required JDK.
 
-### Validate each workflow matrix
+### Validate the workflow matrix
 
-Add this step to the pull-request workflow after dependencies are installed:
+Add this step after dependencies are installed:
 
 ```yaml
-- name: Validate declared pull-request matrix
+- name: Validate declared database matrix
   shell: Rscript {0}
   run: |
     config <- Panoptes::readDatabaseTestConfig(
@@ -705,12 +681,10 @@ Add this step to the pull-request workflow after dependencies are installed:
     )
     Panoptes::validateDatabaseTestWorkflow(
       config,
-      ".github/workflows/database-platform-tests.yml",
-      ci = "pull-request"
+      ".github/workflows/database-platform-tests.yml"
     )
 ```
 
-Use the scheduled filename and `ci = "scheduled"` in the scheduled workflow.
 This catches missing platforms, extra platforms, wrong runners, and wrong
 GitHub environment names before live behavior starts.
 
@@ -745,7 +719,7 @@ only the temporary alias bridge, if retained.
 - Add the pinned Panoptes dependency.
 - update the YAML declaration;
 - add the consumer integration test; and
-- validate the two derived tier lists without changing live behavior.
+- validate the declared platform list without changing live behavior.
 
 Exit criterion: ordinary checks pass without credentials and Panoptes loads the
 installed declaration.
@@ -760,12 +734,13 @@ installed declaration.
 Exit criterion: PostgreSQL verifies a connection, runs existing cohort
 behavior, asserts the same results, and cleans its objects.
 
-### Pull request 3: tier and runner correction
+### Pull request 3: workflow and runner correction
 
-- Split pull-request and scheduled workflows;
+- consolidate live tests into one pull-request/manual workflow;
+- remove any scheduled database workflow;
 - move BigQuery to Windows;
-- add matrix validation steps; and
-- run at least one scheduled platform.
+- add matrix validation; and
+- run every required external platform.
 
 Exit criterion: workflow rows exactly match the declaration, and required jobs
 cannot pass without a connection attempt.
@@ -828,8 +803,7 @@ Expected result: failure before connection details are constructed.
 ### Complete live environment
 
 Set the normalized variables for one platform and run the same filtered test.
-Start with PostgreSQL, then SQL Server and Oracle, then one scheduled platform,
-and finally the remaining scheduled matrix.
+Start with PostgreSQL, then add the remaining required external platforms.
 
 Expected result: Panoptes verifies a connection, CohortGenerator runs the
 existing behavior assertions, and cleanup succeeds.
@@ -845,7 +819,7 @@ The migration is complete when all of the following are true:
 - Local missing credentials skip with normalized variable names only.
 - Missing credentials for a required live CI job fail before connection
   construction.
-- Pull-request and scheduled matrices match their declared tiers.
+- The single live workflow matrix matches every enabled external platform.
 - BigQuery uses a compatible declared runner.
 - Every required green live job records a connection attempt.
 - SqlRender options and BigQuery temporary credentials are restored on success
@@ -868,12 +842,7 @@ The migration is complete when all of the following are true:
    `JDBC_QUERY_RESULT_FORMAT=JSON` workarounds, which Panoptes currently owns.
 4. Decide when the optional legacy alias helper and old GitHub secret names can
    be deleted.
-5. Confirm the scheduled cadence and environment-approval policy for scheduled
-   jobs.
-6. Decide whether push events should run a separate `push` tier in a future
-   schema version; do not silently treat scheduled platforms as pull-request
-   platforms.
-7. Confirm the trusted-run policy for pull requests from forks.
+5. Confirm the trusted-run policy for pull requests from forks.
 
 ## Rollback point
 

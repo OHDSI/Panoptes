@@ -80,8 +80,8 @@ test_that("platform fields and cross-field rules are enforced", {
   expect_error(validateDatabaseTestConfig(bad), "missing field")
 
   bad <- config
-  bad$platforms[[1]]$ci <- "nightly"
-  expect_error(validateDatabaseTestConfig(bad), "invalid `ci`")
+  bad$platforms[[1]]$ci <- "pull-request"
+  expect_error(validateDatabaseTestConfig(bad), "unknown field")
 
   bad <- config
   bad$platforms[[1]]$enabled <- FALSE
@@ -115,25 +115,20 @@ test_that("the bundled consumer template remains valid", {
   expect_length(config$platforms, 9)
 })
 
-test_that("configured platforms filter on enabled state and CI tier", {
+test_that("configured platforms filter on enabled state", {
   disabled <- makeTestPlatform(
     dbms = "iris",
     enabled = FALSE,
     required = FALSE,
-    ci = "none",
     connectionMode = "connectionString"
   )
   disabled$reason <- "Not supported by this package"
   config <- makeTestConfig(list(
     makeTestPlatform(),
-    makeTestPlatform(dbms = "oracle", ci = "scheduled"),
+    makeTestPlatform(dbms = "oracle"),
     disabled
   ))
 
   expect_length(getConfiguredDatabasePlatforms(config), 2)
-  expect_equal(
-    getConfiguredDatabasePlatforms(config, ci = "scheduled")[[1]]$dbms,
-    "oracle"
-  )
   expect_length(getConfiguredDatabasePlatforms(config, enabled = FALSE), 1)
 })

@@ -145,28 +145,23 @@ strings.
 
 ### 4. Keep CI aligned with the declaration
 
-Derive the expected rows for a tier:
-
-```r
-Panoptes::getDatabaseTestMatrix(config, ci = "pull-request")
-Panoptes::getDatabaseTestMatrix(config, ci = "scheduled")
-```
-
-For an auditable static caller matrix, add a unit test:
+Use one live-database workflow containing every enabled external platform. For
+an auditable static caller matrix, add a unit test:
 
 ```r
 testthat::expect_true(
   Panoptes::validateDatabaseTestWorkflow(
     config,
-    ".github/workflows/database-platform-tests.yml",
-    ci = "pull-request"
+    ".github/workflows/database-platform-tests.yml"
   )
 )
 ```
 
 The bundled `inst/templates/database-platform-tests.yml` shows the boundary:
 the caller chooses triggers and maps GitHub secrets to normalized variables;
-Panoptes validates DBMS, runner, and GitHub environment rows.
+Panoptes validates DBMS, runner, and GitHub environment rows. The bundled
+workflow uses pull-request and manual triggers; Panoptes does not define or
+require scheduled database tests.
 
 ## Missing environment policy
 

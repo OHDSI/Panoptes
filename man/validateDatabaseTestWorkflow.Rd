@@ -4,15 +4,13 @@
 \alias{validateDatabaseTestWorkflow}
 \title{Validate a static CI matrix against a declaration}
 \usage{
-validateDatabaseTestWorkflow(config, workflow, ci)
+validateDatabaseTestWorkflow(config, workflow)
 }
 \arguments{
 \item{config}{A database test configuration.}
 
 \item{workflow}{Path to a GitHub Actions YAML workflow or an already parsed
 workflow mapping.}
-
-\item{ci}{CI tier represented by the static matrix.}
 }
 \value{
 \code{TRUE}, invisibly, or a \code{panoptes_workflow_drift} error.

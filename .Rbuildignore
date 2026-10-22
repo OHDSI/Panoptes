@@ -1,4 +1,5 @@
 ^\.github$
+^\.git$
 ^\.gitignore$
 ^\.lintr$
 ^Panoptes\.Rproj$

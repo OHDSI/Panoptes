@@ -4,13 +4,11 @@
 \alias{getConfiguredDatabasePlatforms}
 \title{List configured database platforms}
 \usage{
-getConfiguredDatabasePlatforms(config, ci = NULL, enabled = TRUE)
+getConfiguredDatabasePlatforms(config, enabled = TRUE)
 }
 \arguments{
 \item{config}{A validated configuration or path/package input accepted by
 \code{\link[=readDatabaseTestConfig]{readDatabaseTestConfig()}}.}
-
-\item{ci}{Optional CI tier to filter.}
 
 \item{enabled}{Whether to return enabled (\code{TRUE}), disabled (\code{FALSE}), or all
 (\code{NULL}) platforms.}

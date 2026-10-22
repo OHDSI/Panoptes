@@ -58,7 +58,6 @@ test_that("withDatabaseTestContext scopes options and temporary key files", {
   platform <- makeTestPlatform(
     dbms = "bigquery",
     required = FALSE,
-    ci = "scheduled",
     connectionMode = "connectionString",
     credentialMode = "keyFile",
     tempEmulationSchema = TRUE,

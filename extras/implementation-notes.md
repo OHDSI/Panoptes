@@ -42,7 +42,7 @@ Panoptes provides:
 - authoritative YAML configuration validation with unknown-field rejection;
 - canonical names and input aliases for all nine prototype DBMS platforms;
 - one-DBMS-per-process selection through `HADES_TEST_DBMS`;
-- enabled, required, CI-tier, runner, and operating-system policy;
+- enabled, required, runner, and operating-system policy;
 - normalized `HADES_*` environment resolution with consumer-supplied aliases;
 - local skip, optional-CI skip, and required-CI failure behavior;
 - DatabaseConnector connection-details adapters without eager connections;
@@ -121,8 +121,7 @@ documented defaults, but they should be reviewed before a public 0.1.0 tag.
    recommended for 0.1.0. Revisit an optional adapter only if non-test uses
    emerge.
 4. **`required` semantics:** the implementation treats it as global for the
-   platform's selected tier. If a platform needs different required policy per
-   tier, the schema will need a tier-specific structure.
+   platform whenever explicit live CI is active.
 5. **BigQuery compatibility:** the template preserves the prototype's Windows
    restriction. Confirm whether current DatabaseConnector/driver versions now
    support other runners before retaining it long-term.
@@ -138,9 +137,9 @@ documented defaults, but they should be reviewed before a public 0.1.0 tag.
 9. **Fork pull-request policy:** protected secrets are unavailable to forks.
    Choose manual dispatch, a protected maintainer branch, or another trusted
    execution policy; do not expose secrets to untrusted code.
-10. **Workflow tiers:** the schema assigns one tier per platform. Confirm whether
-    a future platform must run in multiple tiers; if so, make `ci` an array in a
-    later schema version.
+10. **Workflow policy:** Panoptes intentionally uses one complete live-database
+    matrix and does not model trigger tiers or scheduled execution. Trigger
+    policy remains in the consumer workflow.
 
 ## Suggested CohortGenerator migration sequence
 
@@ -156,8 +155,8 @@ design, and acceptance criteria are in
 4. Replace generic copied helpers with `readDatabaseTestConfig()` and
    `withDatabaseTestContext()`.
 5. Keep `test-dbms-platforms.R` behavior and table cleanup in CohortGenerator.
-6. Split pull-request and scheduled matrices, and put BigQuery on its declared
-   runner.
+6. Put every enabled external platform in one live matrix, with BigQuery on its
+   declared runner.
 7. Add static matrix validation tests.
 8. Run live PostgreSQL first, then add adapters individually.
 9. Remove copied helper tests only after equivalent Panoptes and consumer

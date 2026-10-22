@@ -19,7 +19,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "dbms", "enabled", "required", "ci", "cdmVersion",
+        "dbms", "enabled", "required", "cdmVersion",
         "connectionMode", "tempEmulationSchema", "runner", "os"
       ],
       "properties": {
@@ -28,7 +28,6 @@
         },
         "enabled": {"type": "boolean"},
         "required": {"type": "boolean"},
-        "ci": {"enum": ["pull-request", "push", "scheduled", "manual", "none"]},
         "cdmVersion": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]+){1,2}$"},
         "connectionMode": {"enum": ["local", "server", "connectionString"]},
         "credentialMode": {"enum": ["none", "password", "keyFile"]},

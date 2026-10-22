@@ -22,6 +22,21 @@ jobs:
           - dbms: oracle
             runner: ubuntu-latest
             environment: test-oracle
+          - dbms: redshift
+            runner: ubuntu-latest
+            environment: test-redshift
+          - dbms: spark
+            runner: ubuntu-latest
+            environment: test-spark
+          - dbms: bigquery
+            runner: windows-latest
+            environment: test-bigquery
+          - dbms: snowflake
+            runner: ubuntu-latest
+            environment: test-snowflake
+          - dbms: iris
+            runner: ubuntu-latest
+            environment: test-iris
     env:
       HADES_DATABASE_TEST: "true"
       HADES_TEST_DBMS: ${{ matrix.dbms }}
@@ -39,6 +54,16 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::rcmdcheck
+      - name: Validate database matrix
+        run: |
+          config <- Panoptes::readDatabaseTestConfig(
+            path = "inst/test-config/hades-database-platforms.yml"
+          )
+          Panoptes::validateDatabaseTestWorkflow(
+            config,
+            ".github/workflows/database-platform-tests.yml"
+          )
+        shell: Rscript {0}
       - name: Check
         run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "warning")
         shell: Rscript {0}

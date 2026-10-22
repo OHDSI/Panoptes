@@ -1,5 +1,10 @@
 # CohortGenerator Multi-Database Testing Proposal and Branch Status
 
+> **Historical prototype record.** The `ci` tiers described below document the
+> inspected CohortGenerator branch. Panoptes does not adopt them: its current
+> contract has no `ci` field and validates one complete pull-request/manual
+> live-database workflow.
+
 ## Purpose
 
 This document records the multi-database testing design prototyped on the `update-database-testing-approach` branch, the progress made on that branch, and the work that remains before the design should be adopted across HADES.
@@ -46,14 +51,14 @@ The prototype and next implementation should continue to follow these principles
 | Database test context | Implemented as a named list | Stabilize and move the generic contract to the shared package |
 | Platform-specific helper decomposition | Implemented | Replace conditionals with tested internal adapters in the shared package |
 | One database-neutral behavior test | Implemented | Keep it in CohortGenerator during extraction |
-| Separate live-database workflow | Implemented | Align runners and declared CI tiers |
+| Separate live-database workflow | Implemented | Align runners and remove obsolete CI tiers during migration |
 | Named matrix job per DBMS | Implemented | Derive or validate the matrix against YAML |
 | Remove secrets from normal checks | Implemented | Preserve this separation |
 | GitHub environment per DBMS | Implemented | Document and validate environment/secret mapping |
 | Full config validation | Not implemented | Add field, type, uniqueness, and cross-field validation |
 | Matrix/config drift check | Not implemented | Provide shared validation or matrix generation |
 | Normalized `HADES_*` credential variables | Not implemented | Add in the shared package with legacy aliases |
-| Pull-request versus scheduled tiers | Declared but not enforced | Split triggers/jobs or filter a generated matrix |
+| Prototype CI tiers | Declared but not enforced | Remove during Panoptes migration |
 | Reusable HADES package/workflow | Not implemented | Follow the handoff plan |
 
 ## Current Branch Architecture
@@ -244,7 +249,8 @@ Any missing environment variable errors in explicit live CI. Optional-platform b
 
 PostgreSQL, SQL Server, and Oracle are marked `pull-request`; Redshift, Spark, BigQuery, Snowflake, and IRIS are marked `scheduled`. The workflow currently runs all eight for both pushes and pull requests, and it does not define a schedule.
 
-The workflow should derive jobs from the declaration or validate a static matrix against the selected tier.
+The Panoptes migration should remove the tier metadata and validate the complete
+static workflow matrix against enabled external platforms.
 
 ### BigQuery is selected on an incompatible runner
 
@@ -267,7 +273,7 @@ Still needed:
 - required platform fields;
 - field types;
 - canonical and unique DBMS names;
-- allowed CI tiers and connection modes;
+- allowed connection modes;
 - `reason` for disabled platforms;
 - valid combinations of credential and connection modes; and
 - consistency between `databaseConnection` and platform entries.
@@ -329,8 +335,8 @@ The current schema is a useful starting point. Before reuse, the following seman
 
 - `dbms`: canonical `DatabaseConnector` identifier.
 - `enabled`: whether the package currently claims and tests support.
-- `required`: whether absence or failure is allowed in the selected CI tier.
-- `ci`: automation tier.
+- `required`: whether absence or failure is allowed in explicit live CI.
+- `ci`: obsolete prototype automation tier; remove during migration.
 - `cdmVersion`: expected OMOP CDM version.
 - `connectionMode`: local, server, or connection string.
 - `credentialMode`: optional special credential handling.
@@ -348,7 +354,7 @@ For a selected platform, the shared implementation should execute these steps in
 2. fully validate the declaration;
 3. normalize and validate `HADES_TEST_DBMS`;
 4. resolve the selected platform record;
-5. enforce `enabled`, CI tier, required status, and runner compatibility;
+5. enforce `enabled`, required status, and runner compatibility;
 6. resolve normalized environment variables and legacy aliases;
 7. validate required values without exposing them;
 8. prepare temporary credentials and scoped options;
@@ -389,7 +395,7 @@ The first shared-package pull request should:
 2. add a representative configuration fixture;
 3. implement configuration discovery, parsing, and complete validation;
 4. define the database test context contract;
-5. test configuration and CI-tier semantics without credentials; and
+5. test configuration semantics without credentials; and
 6. leave live connection adapters for the next pull request.
 
 Once that contract is reviewed, port PostgreSQL as the first adapter and migrate CohortGenerator incrementally.
@@ -400,8 +406,8 @@ Before this branch is considered a complete reference implementation:
 
 - all YAML fields used in the declared contract are enforced;
 - environment validation occurs before connection construction;
-- `required` and CI tiers affect behavior as documented;
-- the workflow has a scheduled path for scheduled platforms;
+- `required` affects behavior as documented;
+- one pull-request/manual workflow covers every enabled external platform;
 - each DBMS uses a compatible runner;
 - required jobs cannot pass without a connection attempt;
 - the matrix is derived from or validated against YAML;
