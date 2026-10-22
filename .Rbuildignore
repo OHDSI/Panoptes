@@ -6,3 +6,4 @@
 ^extras$
 ^cran-comments\.md$
 ^README\.Rmd$
+^LICENSE\.md$
