@@ -10,15 +10,15 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/OHDSI/Panoptes/blob/v0.2.0/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/OHDSI/Panoptes/blob/main/DESCRIPTION)
 
 Sena A (2026). *Panoptes: Database Platform Compatibility for HADES*. R
-package version 0.2.0, <https://ohdsi.github.io/Panoptes/>.
+package version 0.3.0, <https://ohdsi.github.io/Panoptes/>.
 
     @Manual{,
       title = {Panoptes: Database Platform Compatibility for HADES},
       author = {Anthony Sena},
       year = {2026},
-      note = {R package version 0.2.0},
+      note = {R package version 0.3.0},
       url = {https://ohdsi.github.io/Panoptes/},
     }

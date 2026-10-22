@@ -1,5 +1,11 @@
 # Changelog
 
+## Panoptes 0.3.0
+
+- Removed the obsolete automatic `EnableArrow=0` mutation from
+  Spark/Databricks connection strings. Panoptes now passes the supplied
+  connection string through unchanged.
+
 ## Panoptes 0.2.0
 
 - Added DuckDB as a supported local, credential-free database platform.

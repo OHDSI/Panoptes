@@ -38,7 +38,7 @@ Add Panoptes to `Suggests` in the consuming package’s `DESCRIPTION`:
 
 ``` text
 Suggests:
-    Panoptes (>= 0.2.0),
+    Panoptes (>= 0.3.0),
     testthat (>= 3.0.0)
 ```
 
