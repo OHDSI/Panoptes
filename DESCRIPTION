@@ -1,7 +1,7 @@
 Package: Panoptes
 Type: Package
 Title: Database Platform Compatibility for HADES
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
     person("Anthony", "Sena", email = "sena@ohdsi.org", role = c("aut", "cre")),
     person("Observational Health Data Science and Informatics", role = c("cph"))

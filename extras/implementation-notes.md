@@ -2,7 +2,7 @@
 
 ## Outcome
 
-This repository is an R package named `Panoptes`, version 0.1.0. It provides
+This repository is an R package named `Panoptes`, version 0.3.0. It provides
 reusable database-testing infrastructure while leaving package-specific
 fixtures, behavior, assertions, and database-object cleanup to each consumer.
 
@@ -36,8 +36,8 @@ Panoptes provides:
 - normalized `HADES_*` environment resolution with consumer-supplied aliases;
 - local skip, optional-CI skip, and required-CI failure behavior;
 - DatabaseConnector connection-details adapters without eager connections;
-- Spark `EnableArrow=0` and Snowflake `JDBC_QUERY_RESULT_FORMAT=JSON`
-  workarounds isolated in their adapters;
+- the Snowflake `JDBC_QUERY_RESULT_FORMAT=JSON` workaround isolated in its
+  adapter;
 - temporary BigQuery key-file creation with restrictive permissions and
   deferred deletion;
 - a stable, redacted `panoptes_database_test_context` S3 object;
@@ -100,14 +100,14 @@ locally or for an optional platform.
 ## Maintainer questions and review decisions
 
 These do not block use of the package, because the implementation applies the
-documented defaults, but they should be reviewed before a public 0.1.0 tag.
+documented defaults, but they should be reviewed before the 0.3.0 release.
 
 1. **Repository governance and URLs:** confirm `OHDSI/Panoptes` and the pkgdown
    URL.
 2. **Additional consumers:** test with HADES packages having materially
    different database behavior before stabilizing the public API.
 3. **testthat dependency:** Panoptes imports testthat for direct skip helpers,
-   as recommended for 0.1.0. Revisit an optional adapter only if non-test uses
+   as recommended for 0.3.0. Revisit an optional adapter only if non-test uses
    emerge.
 4. **`required` semantics:** the implementation treats it as global for the
    platform whenever explicit live CI is active.
@@ -121,8 +121,8 @@ documented defaults, but they should be reviewed before a public 0.1.0 tag.
 7. **Reusable workflow publication:** the package includes an auditable caller
    workflow template and drift validator. Decide whether OHDSI also wants a
    centrally versioned reusable workflow after repository hosting is available.
-8. **Spark and Snowflake workarounds:** establish upstream version and removal
-   criteria for `EnableArrow=0` and `JDBC_QUERY_RESULT_FORMAT=JSON`.
+8. **Snowflake workaround:** establish upstream version and removal criteria for
+   `JDBC_QUERY_RESULT_FORMAT=JSON`.
 9. **Fork pull-request policy:** protected secrets are unavailable to forks.
    Use manual dispatch, a protected maintainer branch, or another trusted
    execution policy; never expose secrets to untrusted code.
