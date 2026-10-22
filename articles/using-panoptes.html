@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">Panoptes</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -104,7 +104,7 @@ meaningful package behavior and assert its result.</p>
 <p>Add Panoptes to <code>Suggests</code> in the consuming package’s
 <code>DESCRIPTION</code>:</p>
 <pre class="text"><code>Suggests:
-    Panoptes (&gt;= 0.1.0),
+    Panoptes (&gt;= 0.2.0),
     testthat (&gt;= 3.0.0)</code></pre>
 <p>Panoptes belongs in <code>Suggests</code>, not <code>Imports</code>,
 because the package uses it only from tests and CI. This guide assumes
@@ -211,9 +211,15 @@ work schema</td>
 </table>
 <p>Use <code>databaseConnection: subset</code> and retain only platforms
 the package supports. Use <code>databaseConnection: all</code> only when
-all nine adapter entries remain in the file. A disabled entry must set
+all ten adapter entries remain in the file. A disabled entry must set
 <code>required: false</code> and provide a non-empty
 <code>reason</code>.</p>
+<p>SQLite and DuckDB are local file-based platforms. Their entries must
+use <code>connectionMode: local</code> and
+<code>credentialMode: none</code>; <code>HADES_DB_SERVER</code> is the
+path to the database file. A consumer that runs DuckDB tests should also
+list the <code>duckdb</code> R package in <code>Suggests</code>. Neither
+local platform needs a JDBC driver.</p>
 <p>Never put users, passwords, servers, connection strings, key
 contents, or schema values in this file. It is committed to source
 control.</p>
@@ -405,6 +411,12 @@ defaults to the declared <code>cdmVersion</code>. Set either variable
 only when the environment differs. Panoptes print methods show variable
 names and set/unset status, never credential values or complete
 connection strings.</p>
+<p>For a local DuckDB run, install the <code>duckdb</code> R package,
+select <code>duckdb</code>, and set <code>HADES_DB_SERVER</code> to an
+existing DuckDB file containing the test CDM. Keep the schema variables
+shown above, but omit the user, password, JDBC-folder, and
+driver-download steps. Panoptes opens the file through
+DatabaseConnector; it does not create or populate the CDM.</p>
 </div>
 <div class="section level2">
 <h2 id="provision-github-environments-and-secrets">7. Provision GitHub environments and secrets<a class="anchor" aria-label="anchor" href="#provision-github-environments-and-secrets"></a>
@@ -415,6 +427,8 @@ platform. The environment name must match
 <code>test-postgresql</code>. Use the same normalized secret names in
 every environment; each adapter reads only the values its connection
 mode requires.</p>
+<p>SQLite and DuckDB are local platforms and do not require protected
+GitHub environments or rows in the external-database matrix.</p>
 <table class="table">
 <colgroup>
 <col width="50%">
@@ -484,8 +498,8 @@ full YAML example from this vignette:</p>
 matrix row. Whenever a platform becomes enabled in the declaration, add
 its DBMS, runner, and GitHub environment row in the same change.
 Packages declaring all adapters should retain all eight external rows
-from the template; SQLite remains a local platform and is not part of
-the live matrix.</p>
+from the template; SQLite and DuckDB remain local platforms and are not
+part of the live matrix.</p>
 <p>The template provides:</p>
 <ul>
 <li>

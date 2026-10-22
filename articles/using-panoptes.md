@@ -38,7 +38,7 @@ Add Panoptes to `Suggests` in the consuming package’s `DESCRIPTION`:
 
 ``` text
 Suggests:
-    Panoptes (>= 0.1.0),
+    Panoptes (>= 0.2.0),
     testthat (>= 3.0.0)
 ```
 
@@ -102,9 +102,15 @@ secrets:
 | `githubEnvironment` | Protected GitHub environment supplying that row’s secrets |
 
 Use `databaseConnection: subset` and retain only platforms the package
-supports. Use `databaseConnection: all` only when all nine adapter
+supports. Use `databaseConnection: all` only when all ten adapter
 entries remain in the file. A disabled entry must set `required: false`
 and provide a non-empty `reason`.
+
+SQLite and DuckDB are local file-based platforms. Their entries must use
+`connectionMode: local` and `credentialMode: none`; `HADES_DB_SERVER` is
+the path to the database file. A consumer that runs DuckDB tests should
+also list the `duckdb` R package in `Suggests`. Neither local platform
+needs a JDBC driver.
 
 Never put users, passwords, servers, connection strings, key contents,
 or schema values in this file. It is committed to source control.
@@ -281,6 +287,12 @@ variable only when the environment differs. Panoptes print methods show
 variable names and set/unset status, never credential values or complete
 connection strings.
 
+For a local DuckDB run, install the `duckdb` R package, select `duckdb`,
+and set `HADES_DB_SERVER` to an existing DuckDB file containing the test
+CDM. Keep the schema variables shown above, but omit the user, password,
+JDBC-folder, and driver-download steps. Panoptes opens the file through
+DatabaseConnector; it does not create or populate the CDM.
+
 ## 7. Provision GitHub environments and secrets
 
 Create one protected GitHub environment for each enabled external
@@ -288,6 +300,9 @@ platform. The environment name must match `githubEnvironment`, for
 example `test-postgresql`. Use the same normalized secret names in every
 environment; each adapter reads only the values its connection mode
 requires.
+
+SQLite and DuckDB are local platforms and do not require protected
+GitHub environments or rows in the external-database matrix.
 
 | Connection style | Required normalized secrets |
 |----|----|
@@ -332,8 +347,8 @@ For the PostgreSQL-first declaration, retain only the PostgreSQL matrix
 row. Whenever a platform becomes enabled in the declaration, add its
 DBMS, runner, and GitHub environment row in the same change. Packages
 declaring all adapters should retain all eight external rows from the
-template; SQLite remains a local platform and is not part of the live
-matrix.
+template; SQLite and DuckDB remain local platforms and are not part of
+the live matrix.
 
 The template provides:
 
