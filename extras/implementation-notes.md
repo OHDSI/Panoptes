@@ -163,5 +163,16 @@ design, and acceptance criteria are in
 9. Remove copied helper tests only after equivalent Panoptes and consumer
    integration tests pass.
 
-No changes were made to the local CohortGenerator repository as part of this
-package extraction.
+## CohortGenerator pilot update
+
+The CohortGenerator consumer migration is now implemented locally on its
+`update-database-testing-approach` branch. During the pilot,
+`readDatabaseTestConfig(package = "CohortGenerator")` exposed a source-root
+discovery bug: `read.dcf()` retains the `Package` field name, causing
+`identical()` to reject an otherwise equal package name. `findPackageRoot()`
+now removes that field name before comparison, and a nested source-package
+regression test covers the documented discovery behavior.
+
+The Panoptes test suite passes after this correction. The consumer migration's
+decisions and remaining repository-configuration questions are recorded in
+`extras/Panoptes_migration_implementation_notes.md` in CohortGenerator.

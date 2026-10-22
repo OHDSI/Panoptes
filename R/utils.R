@@ -60,7 +60,7 @@ findPackageRoot <- function(start, package = NULL) {
     description <- file.path(start, "DESCRIPTION")
     if (file.exists(description)) {
       fields <- tryCatch(read.dcf(description), error = function(e) NULL)
-      foundPackage <- if (is.null(fields)) "" else fields[1L, "Package"]
+      foundPackage <- if (is.null(fields)) "" else unname(fields[1L, "Package"])
       if (is.null(package) || identical(foundPackage, package)) {
         return(start)
       }

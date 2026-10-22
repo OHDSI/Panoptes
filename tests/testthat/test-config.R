@@ -27,6 +27,31 @@ test_that("source package roots are supported explicitly", {
   expect_equal(readDatabaseTestConfig(package = root)$package, "ExamplePackage")
 })
 
+test_that("source package roots are discovered by package name", {
+  root <- tempfile("panoptes-consumer-")
+  testDirectory <- file.path(root, "tests", "testthat")
+  dir.create(testDirectory, recursive = TRUE)
+  dir.create(file.path(root, "inst", "test-config"), recursive = TRUE)
+  writeLines(
+    c(
+      "Package: ExamplePackage",
+      "Version: 0.0.1"
+    ),
+    file.path(root, "DESCRIPTION")
+  )
+  file.copy(
+    test_path("fixtures", "database-platforms.yml"),
+    file.path(root, "inst", "test-config", "hades-database-platforms.yml")
+  )
+  withr::defer(unlink(root, recursive = TRUE, force = TRUE))
+  withr::local_dir(testDirectory)
+
+  expect_equal(
+    readDatabaseTestConfig(package = "ExamplePackage")$package,
+    "ExamplePackage"
+  )
+})
+
 test_that("top-level configuration rules are enforced", {
   config <- unclass(makeTestConfig())
 
