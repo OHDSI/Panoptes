@@ -12,8 +12,8 @@
 - Simplified live CI to one complete pull-request/manual matrix; Panoptes has no
   scheduled tier or matrix-derivation API. The prototype `ci` declaration field
   is rejected as unknown.
-- Added package templates, JSON Schema, unit tests, vignettes, and migration
-  documentation based on the CohortGenerator prototype.
+- Added package templates, JSON Schema, unit tests, vignettes, and maintainer
+  documentation.
 - Expanded the consumer vignette into an end-to-end maintainer guide covering
   declaration, behavior tests, local execution, protected environments, CI,
   rollout, and troubleshooting.

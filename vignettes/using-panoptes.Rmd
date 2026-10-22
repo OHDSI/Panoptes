@@ -8,7 +8,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", purl = FALSE)
 ```
 
 This guide takes a HADES package maintainer from an ordinary package test suite
@@ -16,10 +16,6 @@ to one package-owned behavior test that runs against every database platform
 the package declares. The examples use a fictional package named
 `MyHadesPackage`, begin with PostgreSQL, and then expand to the complete live
 database matrix.
-
-If your package already contains helpers copied from the CohortGenerator
-prototype, read `vignette("migrating-to-panoptes", package = "Panoptes")` after
-this guide. It identifies the copied code that Panoptes replaces.
 
 ## 1. Understand the ownership boundary
 
@@ -395,6 +391,3 @@ When database support changes:
 6. verify success and error paths both clean package-owned objects;
 7. run the consumer integration test and workflow validator; and
 8. run every required external platform before claiming support.
-
-Packages replacing copied CohortGenerator helpers should now continue with
-`vignette("migrating-to-panoptes", package = "Panoptes")`.

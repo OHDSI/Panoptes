@@ -25,15 +25,14 @@ with the consuming package and its CI environment.
 
 ## Why Panoptes exists
 
-The first implementation was prototyped in CohortGenerator. It proved that a
-single behavior test can run against PostgreSQL, SQL Server, Oracle, Redshift,
-Spark, BigQuery, Snowflake, and IRIS while SQLite remains available for normal
-package tests. It also revealed infrastructure that should not be copied into
-each HADES package: declaration validation, strict CI behavior, platform
-adapters, temporary credentials, scoped options, and matrix drift checks.
+Cross-database tests need the same infrastructure in every HADES package:
+declaration validation, strict CI behavior, platform adapters, temporary
+credentials, scoped options, and matrix drift checks. Maintaining separate
+copies of that infrastructure makes behavior inconsistent and allows package
+support declarations to drift from CI.
 
-Panoptes extracts that reusable layer and fixes the prototype's known ordering and
-policy gaps. In particular, environment validation happens before connection
+Panoptes centralizes that reusable layer and enforces consistent ordering and
+policy. In particular, environment validation happens before connection
 construction, required and optional CI jobs behave differently, BigQuery's
 runner is explicit, and connection attempts can be asserted.
 
@@ -109,15 +108,13 @@ test.
 
 - `vignette("using-panoptes", package = "Panoptes")` gives the complete
   step-by-step maintainer adoption guide.
-- `vignette("migrating-to-panoptes", package = "Panoptes")` maps the CohortGenerator
-  prototype helpers to Panoptes.
 - `extras/implementation-notes.md` records implementation decisions, known
-  constraints, and maintainer questions from the extraction.
+  constraints, and maintainer questions.
 
 ## Scope
 
 Panoptes 0.1.0 supports declaration and selection, normalized environment
-resolution, the nine prototype platform adapters, a stable S3 context, scoped
+resolution, nine database-platform adapters, a stable S3 context, scoped
 resources, connection-attempt verification, unique object names, and CI matrix
 validation. Database/CDM provisioning, package behavior, organization secrets,
 performance certification, and automatic cleanup of package-owned objects are
