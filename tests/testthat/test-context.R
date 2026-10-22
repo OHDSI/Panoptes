@@ -54,17 +54,30 @@ test_that("DuckDB uses the local file adapter without credentials", {
   })
 })
 
-test_that("Spark and Snowflake workarounds are isolated in adapters", {
+test_that("Spark connection strings are passed through unchanged", {
   spark <- makeTestPlatform(dbms = "spark", connectionMode = "connectionString")
-  snowflake <- makeTestPlatform(dbms = "snowflake", connectionMode = "connectionString")
   values <- databaseEnvironment
   values[["HADES_TEST_DBMS"]] <- "spark"
+  values[["HADES_DB_CONNECTION_STRING"]] <- paste0(
+    values[["HADES_DB_CONNECTION_STRING"]],
+    ";EnableQueryResultDownload=0"
+  )
   withr::with_options(list(Panoptes.connectionDetailsFactory = mockConnectionDetails), {
     withr::with_envvar(values, {
       sparkContext <- createDatabaseTestContext(makeTestConfig(list(spark)))
-      expect_match(sparkContext$connectionDetails$connectionString, "EnableArrow=0", fixed = TRUE)
+      expect_identical(
+        sparkContext$connectionDetails$connectionString,
+        values[["HADES_DB_CONNECTION_STRING"]]
+      )
     })
-    values[["HADES_TEST_DBMS"]] <- "snowflake"
+  })
+})
+
+test_that("Snowflake workaround is isolated in its adapter", {
+  snowflake <- makeTestPlatform(dbms = "snowflake", connectionMode = "connectionString")
+  values <- databaseEnvironment
+  values[["HADES_TEST_DBMS"]] <- "snowflake"
+  withr::with_options(list(Panoptes.connectionDetailsFactory = mockConnectionDetails), {
     withr::with_envvar(values, {
       snowflakeContext <- createDatabaseTestContext(makeTestConfig(list(snowflake)))
       expect_match(

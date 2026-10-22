@@ -101,7 +101,7 @@ Live database credentials are not required for ordinary package checks.
    remotes::install_github("OHDSI/Panoptes")
    ```
 
-2. Add `Panoptes (>= 0.2.0)` to `Suggests` in the consuming package's
+2. Add `Panoptes (>= 0.3.0)` to `Suggests` in the consuming package's
    `DESCRIPTION` file. Panoptes is intended to be a test-only dependency.
 
 3. Follow the usage vignette to declare database support, write a package-owned

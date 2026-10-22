@@ -10,17 +10,6 @@ getJdbcDriverFolder <- function() {
   path
 }
 
-normalizeSparkConnectionString <- function(connectionString) {
-  if (!nzchar(connectionString) || grepl("EnableArrow=0", connectionString, fixed = TRUE)) {
-    return(connectionString)
-  }
-  if (grepl(";$", connectionString)) {
-    paste0(connectionString, "EnableArrow=0")
-  } else {
-    paste0(connectionString, ";EnableArrow=0")
-  }
-}
-
 normalizeSnowflakeConnectionString <- function(connectionString) {
   if (!nzchar(connectionString) || grepl("JDBC_QUERY_RESULT_FORMAT=JSON", connectionString, fixed = TRUE)) {
     return(connectionString)
@@ -59,9 +48,6 @@ createPlatformConnectionDetails <- function(platform, environment, deferEnv) {
   }
   if (platform$connectionMode == "connectionString") {
     connectionString <- values$HADES_DB_CONNECTION_STRING
-    if (platform$dbms == "spark") {
-      connectionString <- normalizeSparkConnectionString(connectionString)
-    }
     if (platform$dbms == "snowflake") {
       connectionString <- normalizeSnowflakeConnectionString(connectionString)
     }
