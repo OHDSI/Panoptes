@@ -1,0 +1,35 @@
+Package: Panoptes
+Type: Package
+Title: Database Platform Compatibility for HADES
+Version: 0.1.0
+Authors@R: c(
+    person("Anthony", "Sena", email = "sena@ohdsi.org", role = c("aut", "cre")),
+    person("Observational Health Data Science and Informatics", role = c("cph"))
+  )
+Description: Helps Health Analytics Data-to-Evidence Suite ('HADES') package
+    maintainers explicitly declare and verify support for database platforms.
+    Named after Argus Panoptes, the many-eyed guardian of Greek mythology, it
+    provides a consistent view of database compatibility across the HADES
+    ecosystem. It validates platform declarations, resolves a normalized
+    environment-variable interface, constructs 'DatabaseConnector' test
+    contexts, scopes test resources, and detects drift between declarations
+    and continuous-integration matrices.
+License: Apache License (>= 2)
+URL: https://github.com/OHDSI/Panoptes
+BugReports: https://github.com/OHDSI/Panoptes/issues
+Depends:
+    R (>= 4.1.0)
+Imports:
+    DatabaseConnector (>= 6.0.0),
+    testthat (>= 3.0.0),
+    withr (>= 2.5.0),
+    yaml (>= 2.3.0)
+Suggests:
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Config/roxygen2/markdown: true
+Encoding: UTF-8
+Language: en-US
+Config/roxygen2/version: 8.1.0

@@ -1,0 +1,10 @@
+linters: linters_with_defaults(
+  object_name_linter = object_name_linter(styles = "camelCase"),
+  line_length_linter = line_length_linter(120L),
+  return_linter = NULL,
+  commented_code_linter = NULL,
+  object_length_linter = object_length_linter(length = 50L),
+  indentation_linter = NULL,
+  object_usage_linter = NULL
+  )
+encoding: "UTF-8"

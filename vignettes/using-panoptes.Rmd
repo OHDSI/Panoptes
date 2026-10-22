@@ -1,0 +1,184 @@
+---
+title: "Using Panoptes in a HADES package"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using Panoptes in a HADES package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## The consumer contract
+
+Panoptes owns live-database test infrastructure. The consuming package owns its
+platform declaration, fixtures, behavior, assertions, and database-object
+cleanup. Ordinary package checks remain credential-free, while a separate live
+workflow selects exactly one DBMS in each R process.
+
+The execution order is intentional:
+
+1. locate, read, and fully validate the declaration;
+2. normalize and validate the selected DBMS;
+3. enforce enabled, required, CI-tier, and operating-system policy;
+4. resolve normalized variables and explicit legacy aliases;
+5. validate required values;
+6. create temporary credentials and connection details;
+7. return a common context without connecting eagerly; and
+8. run package-owned behavior and cleanup.
+
+This order prevents incomplete credentials from reaching DatabaseConnector or a
+temporary key file.
+
+## Add the declaration
+
+Start with Panoptes's installed template:
+
+```{r copy-template, eval=FALSE}
+file.copy(
+  system.file(
+    "templates",
+    "hades-database-platforms.yml",
+    package = "Panoptes"
+  ),
+  "inst/test-config/hades-database-platforms.yml"
+)
+```
+
+Use `databaseConnection: subset` and retain only supported platforms when the
+package does not support all nine adapters. Disabled entries must contain a
+reason. Required entries must be enabled and assigned a CI tier. The `runner`
+and `os` fields make compatibility executable; the bundled template assigns
+BigQuery to Windows based on the CohortGenerator prototype.
+
+Read the declaration from an installed consumer package:
+
+```{r read-config, eval=FALSE}
+config <- Panoptes::readDatabaseTestConfig(package = "MyHadesPackage")
+```
+
+During source development, passing the source root or an explicit path is
+deterministic and independent of the test working directory:
+
+```{r read-source-config, eval=FALSE}
+config <- Panoptes::readDatabaseTestConfig(package = ".")
+# or
+config <- Panoptes::readDatabaseTestConfig(
+  path = "inst/test-config/hades-database-platforms.yml"
+)
+```
+
+## Add the behavior test
+
+The same test body should run for every selected DBMS. Avoid branches in the
+assertions; platform differences belong in the declaration or Panoptes adapter.
+
+```{r behavior-test, eval=FALSE}
+testthat::test_that("package behavior works on the selected database", {
+  config <- Panoptes::readDatabaseTestConfig(package = "MyHadesPackage")
+  Panoptes::skipIfNoLiveDatabase(config)
+
+  Panoptes::withDatabaseTestContext(config, verify = TRUE, {
+    connection <- DatabaseConnector::connect(context$connectionDetails)
+    on.exit(DatabaseConnector::disconnect(connection), add = TRUE)
+
+    resultTable <- paste0(context$objectPrefix, "_result")
+    on.exit({
+      # Use package or DatabaseConnector SQL to drop resultTable.
+    }, add = TRUE)
+
+    result <- MyHadesPackage::runBehavior(
+      connectionDetails = context$connectionDetails,
+      cdmDatabaseSchema = context$cdmDatabaseSchema,
+      vocabularyDatabaseSchema = context$vocabularyDatabaseSchema,
+      workDatabaseSchema = context$workDatabaseSchema,
+      resultTable = resultTable
+    )
+
+    testthat::expect_true(result$succeeded)
+    Panoptes::requireDatabaseTestConnectionAttempted(context)
+  })
+})
+```
+
+`verify = TRUE` opens and closes a connection before behavior begins and marks
+the context as attempted. A required live CI job can then fail if an early path
+did not exercise a connection. The behavior test may open its own connection
+for package operations.
+
+Panoptes cleans only resources it creates: temporary key files and scoped process
+options. The consuming package must use `on.exit()` for its tables and other
+fixtures.
+
+## Configure local development
+
+Set one DBMS and the normalized environment. For example, in PowerShell:
+
+```powershell
+$env:HADES_TEST_DBMS = "postgresql"
+$env:HADES_DATABASE_TEST = "false"
+$env:HADES_DB_USER = "..."
+$env:HADES_DB_PASSWORD = "..."
+$env:HADES_DB_SERVER = "..."
+$env:HADES_CDM_SCHEMA = "cdm"
+$env:HADES_WORK_SCHEMA = "scratch"
+Rscript -e 'devtools::test(filter = "database", reporter = "summary")'
+```
+
+When required values are absent locally, Panoptes skips and lists only their
+normalized names. It never prints their values. `HADES_VOCABULARY_SCHEMA`
+defaults to `HADES_CDM_SCHEMA`, and `HADES_CDM_VERSION` defaults to the platform
+declaration.
+
+## Migrate legacy environment names
+
+Keep legacy exceptions at the consumer boundary:
+
+```{r aliases, eval=FALSE}
+aliases <- list(
+  HADES_DB_USER = "CDM5_SQL_SERVER_USER",
+  HADES_DB_PASSWORD = "CDM5_SQL_SERVER_PASSWORD",
+  HADES_DB_SERVER = "CDM5_SQL_SERVER_SERVER",
+  HADES_CDM_SCHEMA = "CDM5_SQL_SERVER_CDM_SCHEMA",
+  HADES_WORK_SCHEMA = "CDM5_SQL_SERVER_OHDSI_SCHEMA"
+)
+
+Panoptes::withDatabaseTestContext(
+  config,
+  legacyAliases = aliases,
+  { context$dbms }
+)
+```
+
+An alias list can provide several candidates for one normalized variable.
+Normalized variables win whenever both are set. This makes exceptions visible
+and removable instead of trying to infer them from a prefix.
+
+## Configure CI
+
+Keep normal `R CMD check` free of live credentials. Use a separate workflow
+whose matrix has one isolated job per DBMS and map environment secrets to the
+normalized interface at the job boundary.
+
+The expected matrix is declaration-driven:
+
+```{r matrix, eval=FALSE}
+Panoptes::getDatabaseTestMatrix(config, "pull-request")
+Panoptes::getDatabaseTestMatrix(config, "scheduled")
+```
+
+For a static, reviewable YAML matrix, prevent drift with a package unit test:
+
+```{r workflow-validation, eval=FALSE}
+Panoptes::validateDatabaseTestWorkflow(
+  config,
+  ".github/workflows/database-platform-tests.yml",
+  ci = "pull-request"
+)
+```
+
+Use a separate scheduled workflow or matrix for `scheduled` platforms. Forked
+pull requests do not receive protected secrets; choose a trusted maintainer
+workflow or manual-dispatch policy rather than weakening secret protection.

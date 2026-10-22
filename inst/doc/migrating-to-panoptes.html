@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Migrating copied database helpers to Panoptes</title>
+</head>
+<body>
+<h1>Migrating copied database helpers to Panoptes</h1>
+<p>Move declaration parsing, environment policy, adapters, context assembly,
+resource lifecycle, and CI drift checks into Panoptes. Keep consumer fixtures,
+behavior, assertions, tables, and cleanup in the consuming package.</p>
+<h2>Core replacement</h2>
+<pre><code>config &lt;- Panoptes::readDatabaseTestConfig(package = "CohortGenerator")
+Panoptes::skipIfNoLiveDatabase(config)
+Panoptes::withDatabaseTestContext(
+  config,
+  legacyAliases = cohortGeneratorAliases,
+  verify = TRUE,
+  {
+    # Existing consumer behavior and on.exit() cleanup.
+  }
+)</code></pre>
+<p>Remove <code>environmentPrefix</code>, add executable runner and OS fields,
+map secrets to normalized <code>HADES_*</code> names, split pull-request and
+scheduled matrices, and validate each static matrix against the declaration.</p>
+<p>The full migration checklist is in
+<code>vignettes/migrating-to-panoptes.Rmd</code>.</p>
+</body>
+</html>

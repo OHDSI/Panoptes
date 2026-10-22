@@ -1,0 +1,9 @@
+name: Database tests
+jobs:
+  database-test:
+    strategy:
+      matrix:
+        include:
+          - dbms: postgresql
+            runner: ubuntu-latest
+            environment: test-postgresql

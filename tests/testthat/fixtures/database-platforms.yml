@@ -1,0 +1,26 @@
+schemaVersion: 1
+package: ExamplePackage
+databaseConnection: subset
+platforms:
+  - dbms: postgresql
+    enabled: true
+    required: true
+    ci: pull-request
+    cdmVersion: "5.4"
+    connectionMode: server
+    credentialMode: password
+    tempEmulationSchema: false
+    runner: ubuntu-latest
+    os: any
+    githubEnvironment: test-postgresql
+  - dbms: bigquery
+    enabled: true
+    required: false
+    ci: scheduled
+    cdmVersion: "5.4"
+    connectionMode: connectionString
+    credentialMode: keyFile
+    tempEmulationSchema: true
+    runner: windows-latest
+    os: windows
+    githubEnvironment: test-bigquery

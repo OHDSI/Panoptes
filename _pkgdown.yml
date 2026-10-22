@@ -1,0 +1,39 @@
+url: https://ohdsi.github.io/Panoptes/
+template:
+  bootstrap: 5
+home:
+  title: Panoptes
+  description: Database testing infrastructure for HADES packages
+reference:
+  - title: Configuration and selection
+    contents:
+      - readDatabaseTestConfig
+      - validateDatabaseTestConfig
+      - getConfiguredDatabasePlatforms
+      - getSelectedTestDbms
+      - getDatabasePlatformConfig
+  - title: Test environment and lifecycle
+    contents:
+      - resolveDatabaseTestEnvironment
+      - validateDatabaseTestEnvironment
+      - createDatabaseTestContext
+      - withDatabaseTestContext
+      - verifyDatabaseTestConnection
+      - databaseTestConnectionAttempted
+      - requireDatabaseTestConnectionAttempted
+      - createUniqueDatabaseObjectName
+  - title: Test focus
+    contents:
+      - isLiveDatabaseTest
+      - skipIfNoLiveDatabase
+      - skipIfLiveDatabaseTest
+  - title: Continuous integration
+    contents:
+      - getDatabaseTestMatrix
+      - validateDatabaseTestWorkflow
+articles:
+  - title: Guides
+    navbar: ~
+    contents:
+      - using-panoptes
+      - migrating-to-panoptes

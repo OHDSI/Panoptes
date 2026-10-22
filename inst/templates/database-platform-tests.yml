@@ -1,0 +1,44 @@
+name: Database platform tests
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  database-test:
+    name: Database test (${{ matrix.dbms }})
+    runs-on: ${{ matrix.runner }}
+    environment: ${{ matrix.environment }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dbms: postgresql
+            runner: ubuntu-latest
+            environment: test-postgresql
+          - dbms: sql server
+            runner: ubuntu-latest
+            environment: test-sql-server
+          - dbms: oracle
+            runner: ubuntu-latest
+            environment: test-oracle
+    env:
+      HADES_DATABASE_TEST: "true"
+      HADES_TEST_DBMS: ${{ matrix.dbms }}
+      HADES_DB_USER: ${{ secrets.HADES_DB_USER }}
+      HADES_DB_PASSWORD: ${{ secrets.HADES_DB_PASSWORD }}
+      HADES_DB_SERVER: ${{ secrets.HADES_DB_SERVER }}
+      HADES_DB_CONNECTION_STRING: ${{ secrets.HADES_DB_CONNECTION_STRING }}
+      HADES_DB_KEY_FILE: ${{ secrets.HADES_DB_KEY_FILE }}
+      HADES_CDM_SCHEMA: ${{ secrets.HADES_CDM_SCHEMA }}
+      HADES_VOCABULARY_SCHEMA: ${{ secrets.HADES_VOCABULARY_SCHEMA }}
+      HADES_WORK_SCHEMA: ${{ secrets.HADES_WORK_SCHEMA }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+      - name: Check
+        run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "warning")
+        shell: Rscript {0}

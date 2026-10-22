@@ -1,0 +1,7 @@
+^\.github$
+^\.gitignore$
+^\.lintr$
+^Panoptes\.Rproj$
+^extras$
+^cran-comments\.md$
+^README\.Rmd$

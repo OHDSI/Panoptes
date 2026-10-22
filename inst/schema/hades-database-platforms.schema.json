@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ohdsi.github.io/Panoptes/hades-database-platforms.schema.json",
+  "title": "Panoptes database test declaration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "package", "databaseConnection", "platforms"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "package": {"type": "string", "minLength": 1},
+    "databaseConnection": {"enum": ["none", "subset", "all"]},
+    "platforms": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/platform"}
+    }
+  },
+  "$defs": {
+    "platform": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dbms", "enabled", "required", "ci", "cdmVersion",
+        "connectionMode", "tempEmulationSchema", "runner", "os"
+      ],
+      "properties": {
+        "dbms": {
+          "enum": ["sqlite", "postgresql", "sql server", "oracle", "redshift", "spark", "bigquery", "snowflake", "iris"]
+        },
+        "enabled": {"type": "boolean"},
+        "required": {"type": "boolean"},
+        "ci": {"enum": ["pull-request", "push", "scheduled", "manual", "none"]},
+        "cdmVersion": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]+){1,2}$"},
+        "connectionMode": {"enum": ["local", "server", "connectionString"]},
+        "credentialMode": {"enum": ["none", "password", "keyFile"]},
+        "tempEmulationSchema": {"type": "boolean"},
+        "runner": {"type": "string", "minLength": 1},
+        "os": {"enum": ["any", "linux", "windows", "macos"]},
+        "githubEnvironment": {"type": "string", "minLength": 1},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
