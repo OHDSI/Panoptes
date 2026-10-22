@@ -1,7 +1,7 @@
 Package: Panoptes
 Type: Package
 Title: Database Platform Compatibility for HADES
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: c(
     person("Anthony", "Sena", email = "sena@ohdsi.org", role = c("aut", "cre")),
     person("Observational Health Data Science and Informatics", role = c("cph"))
@@ -21,11 +21,12 @@ BugReports: https://github.com/OHDSI/Panoptes/issues
 Depends:
     R (>= 4.1.0)
 Imports:
-    DatabaseConnector (>= 6.0.0),
+    DatabaseConnector (>= 6.1.0),
     testthat (>= 3.0.0),
     withr (>= 2.5.0),
     yaml (>= 2.3.0)
 Suggests:
+    duckdb,
     knitr,
     rmarkdown
 VignetteBuilder: knitr

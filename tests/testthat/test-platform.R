@@ -6,6 +6,18 @@ test_that("selected DBMS names and aliases are canonicalized", {
   expect_null(getSelectedTestDbms(config, ""))
 })
 
+test_that("DuckDB names and aliases are canonicalized", {
+  duckdb <- makeTestPlatform(
+    dbms = "duckdb",
+    connectionMode = "local",
+    credentialMode = "none"
+  )
+  config <- makeTestConfig(list(duckdb))
+
+  expect_equal(getSelectedTestDbms(config, " Duck DB "), "duckdb")
+  expect_equal(getDatabasePlatformConfig(config, "duck_db")$dbms, "duckdb")
+})
+
 test_that("undeclared and disabled platforms fail clearly", {
   config <- makeTestConfig()
   expect_error(getSelectedTestDbms(config, "oracle"), class = "panoptes_platform_not_declared")

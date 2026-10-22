@@ -24,6 +24,8 @@ the responsibility of the package and its test environment.
 
 # Features
 
+- Support SQLite, DuckDB, PostgreSQL, SQL Server, Oracle, Redshift, Spark,
+  BigQuery, Snowflake, and InterSystems IRIS.
 - Validate a package-owned YAML declaration of supported database platforms.
 - Select one database platform per R process for focused live testing.
 - Resolve normalized environment variables without exposing credentials.
@@ -85,6 +87,8 @@ behavior.
 - R version 4.1.0 or higher.
 - Java and the appropriate JDBC drivers when testing a database that requires
   them through `DatabaseConnector`.
+- The `duckdb` R package when testing DuckDB; DuckDB does not require a JDBC
+  driver.
 - Access to the database servers and OMOP CDMs used by live tests.
 
 Live database credentials are not required for ordinary package checks.
@@ -97,7 +101,7 @@ Live database credentials are not required for ordinary package checks.
    remotes::install_github("OHDSI/Panoptes")
    ```
 
-2. Add `Panoptes (>= 0.1.0)` to `Suggests` in the consuming package's
+2. Add `Panoptes (>= 0.2.0)` to `Suggests` in the consuming package's
    `DESCRIPTION` file. Panoptes is intended to be a test-only dependency.
 
 3. Follow the usage vignette to declare database support, write a package-owned

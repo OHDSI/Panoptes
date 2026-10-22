@@ -13,7 +13,10 @@
   "big_query" = "bigquery",
   "snowflake" = "snowflake",
   "iris" = "iris",
-  "sqlite" = "sqlite"
+  "sqlite" = "sqlite",
+  "duckdb" = "duckdb",
+  "duck db" = "duckdb",
+  "duck_db" = "duckdb"
 )
 
 .panoptesSupportedDbms <- unique(unname(.panoptesDbmsAliases))

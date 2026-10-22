@@ -67,3 +67,21 @@ test_that("optional platforms skip even in live CI", {
     )
   })
 })
+
+test_that("DuckDB requires a file path and schemas but no credentials", {
+  platform <- makeTestPlatform(
+    dbms = "duckdb",
+    connectionMode = "local",
+    credentialMode = "none"
+  )
+
+  withr::with_envvar(databaseEnvironment, {
+    environment <- resolveDatabaseTestEnvironment(platform)
+    expect_setequal(
+      environment$required,
+      c("HADES_DB_SERVER", "HADES_CDM_SCHEMA", "HADES_WORK_SCHEMA")
+    )
+    expect_false("HADES_DB_USER" %in% environment$required)
+    expect_false("HADES_DB_PASSWORD" %in% environment$required)
+  })
+})
